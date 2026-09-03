@@ -36,6 +36,7 @@ function normalizeEffect(e: RawEffect): Effect {
     stabilizeMemory: 'stabilizeMemory',
     removeMemorySentence: 'removeMemorySentence',
     editMemory: 'editMemory',
+    swapProperNouns: 'swapProperNouns',
     restoreMemory: 'restoreMemory',
     gainSkill: 'gainSkill',
     gainSkillNamed: 'gainSkill',

@@ -145,6 +145,14 @@ body {
 .btn-ghost:hover:not(:disabled) {
   background: rgba(184, 150, 62, 0.12);
 }
+.btn-danger {
+  border-color: var(--blood-bright);
+  background: rgba(140, 28, 28, 0.45);
+}
+.btn-danger:hover:not(:disabled) {
+  background: rgba(179, 38, 30, 0.65);
+  box-shadow: 0 0 16px rgba(140, 28, 28, 0.5);
+}
 /* 纸面（浅色底）上的按钮：改深墨色文字，保证可读性 */
 .btn-parchment {
   color: var(--ink);

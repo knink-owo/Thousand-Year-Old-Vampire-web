@@ -1,43 +1,72 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useGameStore } from './stores/game'
+import HomeView from './views/HomeView.vue'
 import CreateView from './views/CreateView.vue'
 import GameView from './views/GameView.vue'
 import FinishView from './views/FinishView.vue'
+import TutorialView from './views/TutorialView.vue'
+import HistoryView from './views/HistoryView.vue'
 
 const store = useGameStore()
-const view = ref<'create' | 'game' | 'finish'>('create')
+const view = ref<'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'history'>('home')
 
+// 状态驱动收敛：建卡完成（state 出现）→ 游戏；游戏结束（finished）→ 终章
+// 初始总是停留在首页，让玩家自己选择（首页会展示"未竟之旅"）
 watch(
   () => store.state,
   (s) => {
-    if (!s) view.value = 'create'
-    else if (s.finished) view.value = 'finish'
-    else view.value = 'game'
+    if (view.value === 'game' || view.value === 'finish' || view.value === 'create') {
+      if (!s) view.value = 'home'
+      else if (s.finished) view.value = 'finish'
+      else view.value = 'game'
+    }
   },
-  { immediate: true, deep: true },
+  { deep: true },
 )
+
+function navigate(to: 'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'history') {
+  if (to === 'create') {
+    // 有未完存档：直接续玩；否则进入建卡
+    view.value = store.state && !store.state.finished ? 'game' : 'create'
+  } else if (to === 'game') {
+    view.value = store.state && !store.state.finished ? 'game' : 'create'
+  } else {
+    view.value = to
+  }
+}
+
+const showNav = computed(() => view.value !== 'home')
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <!-- 顶部题铭 -->
-    <header class="pt-10 pb-6 text-center px-4">
-      <h1 class="title-serif text-3xl md:text-4xl gold-text tracking-[0.15em] m-0">
-        千年<span class="blood-text">吸血鬼</span>
-      </h1>
-      <p class="mt-3 text-sm opacity-60 tracking-[0.3em]">THOUSAND YEAR OLD VAMPIRE · 单人日记式 TRPG</p>
-      <div class="blood-divider mt-6 mx-auto w-2/3"></div>
+    <!-- 顶部题铭 + 导航 -->
+    <header class="pt-6 pb-2 px-4">
+      <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
+        <button class="title-serif text-2xl md:text-3xl gold-text tracking-[0.15em] bg-transparent border-none cursor-pointer p-0" @click="navigate('home')">
+          千年<span class="blood-text">吸血鬼</span>
+        </button>
+        <nav v-if="showNav" class="flex items-center gap-2 text-sm">
+          <button class="btn btn-ghost text-xs" @click="navigate('home')">首页</button>
+          <button class="btn btn-ghost text-xs" @click="navigate('tutorial')">教程</button>
+          <button class="btn btn-ghost text-xs" @click="navigate('history')">历史</button>
+        </nav>
+      </div>
+      <div class="blood-divider mt-5 mx-auto max-w-6xl"></div>
     </header>
 
     <main class="flex-1 w-full max-w-6xl mx-auto px-4 pb-16 box-border">
-      <CreateView v-if="view === 'create'" />
+      <HomeView v-if="view === 'home'" @navigate="navigate" />
+      <CreateView v-else-if="view === 'create'" />
       <GameView v-else-if="view === 'game'" />
-      <FinishView v-else />
+      <FinishView v-else-if="view === 'finish'" />
+      <TutorialView v-else-if="view === 'tutorial'" @navigate="navigate" />
+      <HistoryView v-else-if="view === 'history'" @navigate="navigate" />
     </main>
 
     <footer class="pb-8 text-center text-xs opacity-40 px-4">
-      依据规则书《千年老吸血鬼》中文翻译版制作 · 仅供个人游玩使用的数字工具
+      改编自《Thousand Year Old Vampire》· 你的旅程只保存在本机 · 可离线游玩
     </footer>
   </div>
 </template>

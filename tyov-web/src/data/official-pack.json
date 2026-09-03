@@ -4,7 +4,7 @@
   "source": "《千年老吸血鬼》规则书中文翻译版 ver 1.04（用户提供 PDF 提取）",
   "language": "zh",
   "promptCount": 80,
-  "notes": "效果为规则引擎自动提取，部分条目需人工确认；72-80 为游戏结束提示"
+  "notes": "效果由规则引擎自动提取，并经人工逐条校对（部分条目有人工覆盖）；72-80 为游戏结束提示"
  },
  "prompts": [
   {
@@ -41,17 +41,20 @@
      "text": "你被邪恶而强大的超自然实体捕获并奴役。创造一个不朽角色。你最终如何逃脱他们的奴役？勾选一项技能并获得技能人类是牛羊。随着一百年过去，划掉所有凡人角色。获得一项你在服务于前任主人的过程中用于作恶的资源。",
      "effects": [
       {
-       "type": "gainSkillNamed",
-       "skill": "人类是牛羊"
+       "type": "createImmortal"
       },
       {
        "type": "checkSkill"
       },
       {
-       "type": "createImmortal"
+       "type": "gainSkillNamed",
+       "skill": "人类是牛羊"
       },
       {
        "type": "killAllMortals"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     }
@@ -95,7 +98,14 @@
    "entries": [
     {
      "text": "一位亲人发现了你的状况，并努力帮助你。创建一个代表他们帮助的资源。如果没有可用的凡人角色，请创造一个。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
     },
     {
      "text": "你操纵这个凡人为你犯下可怕的罪行。当他们畏惧这些可怕任务时，你会怎么做？获得技能人类是工具。",
@@ -111,6 +121,9 @@
      "effects": [
       {
        "type": "characterToResource"
+      },
+      {
+       "type": "checkSkill"
       }
      ]
     }
@@ -139,9 +152,6 @@
       {
        "type": "gainResourceNamed",
        "resource": "秘密阴谋集团"
-      },
-      {
-       "type": "gainResource"
       }
      ]
     },
@@ -166,6 +176,9 @@
       },
       {
        "type": "killCharacter"
+      },
+      {
+       "type": "createMortal"
       }
      ]
     },
@@ -195,7 +208,11 @@
    "entries": [
     {
      "text": "一个凡人角色开始为你服务。他是谁？他为什么被你吸引？创造一个新的凡人角色。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
     },
     {
      "text": "一个信任的凡人角色以令人惊讶的方式背叛了你。失去一项资源。他们为什么这样做？你为什么原谅他们？",
@@ -210,6 +227,9 @@
      "effects": [
       {
        "type": "checkSkill"
+      },
+      {
+       "type": "gainSkill"
       }
      ]
     }
@@ -220,13 +240,20 @@
    "entries": [
     {
      "text": "你的身体展现出创造你的吸血鬼相关特征。你如何变得更像他们？创建一个反映这一点的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "人们在你身上看到你无法感知的恐怖。你拥有什么你自己不知道的印记？创建一个印记和一个见过它的可疑凡人。在你背后，人们用什么来称呼你？",
      "effects": [
       {
        "type": "gainMark"
+      },
+      {
+       "type": "createMortal"
       }
      ]
     },
@@ -262,6 +289,9 @@
      "effects": [
       {
        "type": "memoryToSkill"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     },
@@ -271,6 +301,9 @@
       {
        "type": "gainSkillNamed",
        "skill": "该离开了"
+      },
+      {
+       "type": "checkSkill"
       },
       {
        "type": "loseAllFixedResources"
@@ -287,7 +320,11 @@
    "entries": [
     {
      "text": "你开发了一个系统来喂养你自己。这是什么？那些去世的人会怎样？创造一个反映这一情况的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "你不仅饮用他们的血液，还从你的受害者那里获利！你如何安排这一切？为了保护这个系统，你犯下了什么暴行？勾选一项技能，创建一项资源。",
@@ -336,12 +373,28 @@
      "effects": [
       {
        "type": "createMortal"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     },
     {
      "text": "在摆弄这件神器时，你不小心引发了末日到来。恶魔崛起，天使坠落，灵魂显现。人类的人口被征用于一场将持续几个世纪并决定宇宙命运的战争之中。在适合你故事至今进展的情境下创建一个代表超自然冲突显现的角色或资源。创建两个不朽者角色，他们分别站在冲突的两边，现在对你的吸血鬼感兴趣。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createImmortal"
+      },
+      {
+       "type": "createImmortal"
+      },
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
     }
    ]
   },
@@ -359,6 +412,9 @@
     {
      "text": "你发现了一种内在的专注力，让你能够控制自己的吸血鬼本性。失去一段暴力的记忆，获得技能“我控制那野兽”，并将任何未勾选的技能重写为新技能。你会取什么新名字来与过去的自己保持距离？这个名字有什么象征意义？",
      "effects": [
+      {
+       "type": "loseMemory"
+      },
       {
        "type": "gainSkillNamed",
        "skill": "“我控制那野兽”"
@@ -388,10 +444,13 @@
      "text": "新的法律或社会习俗让你更难隐藏在人群中。你是如何差点被抓获并被消灭的？勾选一项技能。创建一项技能。创建一个协助你的凡人罪犯。",
      "effects": [
       {
+       "type": "checkSkill"
+      },
+      {
        "type": "gainSkill"
       },
       {
-       "type": "checkSkill"
+       "type": "createMortal"
       }
      ]
     },
@@ -405,7 +464,11 @@
     },
     {
      "text": "一个凡人门徒超越了你。他比你更聪明、更残忍、更有能力。他把你关在地牢里——他们用你做什么？创造一个邪恶的凡人角色。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
     }
    ]
   },
@@ -457,11 +520,19 @@
     },
     {
      "text": "你出生的时代和地点与你现在所处的时代和地点截然不同。为了在这个陌生的世界中生存，你必须放弃哪些价值观？根据你最近的记忆创建一个合适的当代技能。你最近使用什么新名字？",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "你如何才能在这个地方取得领导地位？你通过战争和暴力征服了哪些邻居或民众？获得你从一个只想要和平的人那里夺走的资源。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
     }
    ]
   },
@@ -489,7 +560,13 @@
        "type": "loseResource"
       },
       {
+       "type": "loseMemory"
+      },
+      {
        "type": "gainResource"
+      },
+      {
+       "type": "gainSkill"
       }
      ]
     },
@@ -497,7 +574,16 @@
      "text": "人类社会如何因受到像你这样的不朽者的干预而发生巨大变化？谁从中受益？你失去了什么资源？获得一项资源、技能或印记。",
      "effects": [
       {
+       "type": "loseResource"
+      },
+      {
        "type": "gainResource"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "gainMark"
       }
      ]
     }
@@ -511,6 +597,9 @@
      "effects": [
       {
        "type": "checkSkill"
+      },
+      {
+       "type": "createMortal"
       }
      ]
     },
@@ -519,6 +608,12 @@
      "effects": [
       {
        "type": "loseAllFixedResources"
+      },
+      {
+       "type": "gainMark"
+      },
+      {
+       "type": "gainSkill"
       }
      ]
     },
@@ -567,6 +662,12 @@
      "text": "你与一个心爱的角色决斗，如果没有，就创建一个。勾选一个暴力技能或适当的资源，通过杀死他们来获胜，或者获得一个印记并逃往他乡。",
      "effects": [
       {
+       "type": "checkSkill"
+      },
+      {
+       "type": "killCharacter"
+      },
+      {
        "type": "gainMark"
       }
      ]
@@ -581,18 +682,31 @@
      "effects": [
       {
        "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     },
     {
      "text": "一个社区弃儿幸存下来，并发誓要对你进行报复。你是怎么认识他们的？他们怎么知道在你最脆弱的时候抓住你？创建一个一心想毁灭你的凡人角色。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
     },
     {
      "text": "你被赶出了这片土地。失去所有固定资源。勾选一项技能以逃脱，两项技能以消灭迫害者，三项技能以弥补过失。",
      "effects": [
       {
        "type": "checkSkill"
+      },
+      {
+       "type": "checkSkill2"
+      },
+      {
+       "type": "checkSkill3"
       },
       {
        "type": "loseAllFixedResources"
@@ -620,7 +734,11 @@
     },
     {
      "text": "当你的朋友互相争斗时，你却在暗中谋划。操纵冲突来摧毁任意角色。",
-     "effects": []
+     "effects": [
+      {
+       "type": "killCharacter"
+      }
+     ]
     },
     {
      "text": "战斗太多，流血太多。你扮演和事佬的角色，试图结束昔日好友之间的冲突，但他们却背叛了你。失去一项资源。获得一项印记。",
@@ -651,11 +769,28 @@
     },
     {
      "text": "你的吸血鬼状态使你能够操纵多代人，利用他们为自己谋利。创建一个固定的资源和一个象征财富和权力的奢华资源。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainFixedResource"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
     },
     {
      "text": "靠投资和租金生活会让你变得懒惰，削弱了你的狩猎优势。勾选一项残忍或贪婪的技能，失去一项与创造力或努力相关的已勾选技能。获得一项你并非真正挣来的固定资源。",
-     "effects": []
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseSkill"
+      },
+      {
+       "type": "gainFixedResource"
+      }
+     ]
     }
    ]
   },
@@ -704,7 +839,18 @@
     },
     {
      "text": "你的日记丢失或被盗。丢失日记及其包含的所有记忆。如果你没有日记，则丢失一项资源。创建一个被你错误地将此损失归咎于他的角色。",
-     "effects": []
+     "effects": [
+      {
+       "type": "note",
+       "text": "若拥有日记：日记丢失，其中包含的记忆全部划掉（若无日记则失去一项资源）"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "createCharacter"
+      }
+     ]
     },
     {
      "text": "你成为一个沉浸在当下的孤独者，操纵着一百根线以求温饱和安全。永久失去一个记忆槽。获得技能野性狡诈。",
@@ -725,16 +871,23 @@
    "entries": [
     {
      "text": "你掌握了一门奇怪的新科学或知识领域。你的吸血鬼本性如何让你对这些研究有特别的见解？根据记忆创建适当的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "你开始了长期的通信联系并坠入爱河。创建一个凡人角色。通过放弃一项资源来接近他们，或者扼杀爱情并失去一段记忆。",
      "effects": [
       {
-       "type": "loseMemory"
+       "type": "createMortal"
       },
       {
-       "type": "createMortal"
+       "type": "loseResource"
+      },
+      {
+       "type": "loseMemory"
       }
      ]
     },
@@ -784,12 +937,22 @@
      "effects": [
       {
        "type": "loseResource"
+      },
+      {
+       "type": "gainSkill"
       }
      ]
     },
     {
      "text": "要利用这种方法，需要付出哪些体力劳动？创造一个简单实用的技能，并划掉一段记忆。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "loseMemory"
+      }
+     ]
     },
     {
      "text": "一个凡人角色发现了你的觅食系统。他们会用什么令人信服的理由让你放弃它？勾选一项技能。",
@@ -831,6 +994,9 @@
      "effects": [
       {
        "type": "loseResource3"
+      },
+      {
+       "type": "checkSkill3"
       }
      ]
     }
@@ -865,13 +1031,16 @@
      "text": "你成为了一名间谍，出卖你曾称之为家园的土地。获得两项资源。勾选一项技能，获得一项技能，取消勾选一项古老而令人惊讶的技能。哪个角色因你的行为而受苦并死亡？",
      "effects": [
       {
-       "type": "gainSkill"
+       "type": "gainTwoResources"
       },
       {
        "type": "checkSkill"
       },
       {
-       "type": "gainTwoResources"
+       "type": "gainSkill"
+      },
+      {
+       "type": "uncheckSkill"
       }
      ]
     }
@@ -896,6 +1065,9 @@
       },
       {
        "type": "loseResource"
+      },
+      {
+       "type": "createCharacter"
       }
      ]
     },
@@ -907,6 +1079,12 @@
       },
       {
        "type": "gainSkill"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "createMortal"
       }
      ]
     }
@@ -925,7 +1103,14 @@
     },
     {
      "text": "你用一个全新的身份伪装自己。选择一个旧记忆并对其进行修改，使其变得现代而平淡。创建基于这一混合的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "editMemory"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "你迷失在假装的个性中。失去你最古老和最新的记忆。扔掉你的日记。创造一项与新生活相关的技能和资源。",
@@ -934,7 +1119,13 @@
        "type": "loseTwoMemories"
       },
       {
+       "type": "destroyResource"
+      },
+      {
        "type": "gainSkill"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     }
@@ -954,6 +1145,9 @@
     {
      "text": "你感受到一种被周围凡人的传统所禁止的爱。创建一个新角色。失去一项资源。",
      "effects": [
+      {
+       "type": "createCharacter"
+      },
       {
        "type": "loseResource"
       }
@@ -985,6 +1179,9 @@
      "effects": [
       {
        "type": "createMortal"
+      },
+      {
+       "type": "gainSkill"
       }
      ]
     },
@@ -1003,11 +1200,24 @@
    "entries": [
     {
      "text": "你关押了一名囚犯。为什么是这个人？你为什么不吃掉他？创建一个与关押该囚犯有关的角色和技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "凡人救出了你的囚犯。创建两个凡人救援者。失去一项资源。",
      "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      },
       {
        "type": "loseResource"
       }
@@ -1027,6 +1237,9 @@
      "effects": [
       {
        "type": "gainResource"
+      },
+      {
+       "type": "changeAllegiance"
       }
      ]
     },
@@ -1042,13 +1255,16 @@
      "text": "凡人世界发生了大规模的权力转移——政府垮台，战争爆发，新秩序建立。谁从中受益？勾选一项技能。犯下暴行以获得与控制无辜人民相关的资源。获得一项技能并加入胜利方或勾选两项技能。",
      "effects": [
       {
-       "type": "gainSkill"
+       "type": "checkSkill"
       },
       {
        "type": "checkSkill2"
       },
       {
-       "type": "checkSkill"
+       "type": "gainSkill"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     }
@@ -1059,11 +1275,21 @@
    "entries": [
     {
      "text": "你在毫无意义的愤怒中摧毁了对你来说很重要的东西。失去一段珍贵的记忆或摧毁一项资源。",
-     "effects": []
+     "effects": [
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "destroyResource"
+      }
+     ]
     },
     {
      "text": "你的狂怒甚至让你自己感到恐惧。你是学会控制它，还是选择拥抱这种恐怖？如果有一个凡人角色，就杀死他，如果没有，则创建一项印记。",
      "effects": [
+      {
+       "type": "killCharacter"
+      },
       {
        "type": "gainMark"
       }
@@ -1095,13 +1321,20 @@
     },
     {
      "text": "为了报答你的恩情，他们会猛烈攻击那些他们认为是你的敌人的人。一个角色被杀死了。",
-     "effects": []
+     "effects": [
+      {
+       "type": "killCharacter"
+      }
+     ]
     },
     {
      "text": "这个凡人正处于极度危险之中。勾选一项技能或损失一项资源来拯救他，否则他会死得很惨。",
      "effects": [
       {
        "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
       }
      ]
     }
@@ -1123,6 +1356,9 @@
       },
       {
        "type": "checkSkill"
+      },
+      {
+       "type": "killCharacter"
       }
      ]
     },
@@ -1141,15 +1377,30 @@
    "entries": [
     {
      "text": "万物化为尘土。失去一个你没有相应记忆的资源。不要为这个提示创建新的经历，它只是在你沉默凝视时发生。",
-     "effects": []
+     "effects": [
+      {
+       "type": "loseResource"
+      }
+     ]
     },
     {
      "text": "你有一种来源不明的习惯。失去一项你没有相应记忆的未勾选技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "loseSkill"
+      }
+     ]
     },
     {
      "text": "你思想僵化，沉溺于已有习惯。你差点被一个多年来一直在研究你的行为模式的敌人抓住。破坏一项资源并将其重塑为新的令人惊讶的东西。",
-     "effects": []
+     "effects": [
+      {
+       "type": "destroyResource"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
     }
    ]
   },
@@ -1159,6 +1410,9 @@
     {
      "text": "你的整个身心都集中在你的感官和饥渴上。创建一项展现你野性吸血鬼本性的技能，并失去一段现有的记忆。",
      "effects": [
+      {
+       "type": "gainSkill"
+      },
       {
        "type": "loseMemory"
       }
@@ -1206,6 +1460,9 @@
       },
       {
        "type": "gainResource"
+      },
+      {
+       "type": "createMortal"
       }
      ]
     },
@@ -1270,7 +1527,20 @@
     },
     {
      "text": "你结识了一群对你拥有的某种资源感兴趣的凡人。这是一个俱乐部吗？他们是朋友吗？创建三个凡人角色。发展出一项与对应资源相关的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "几十年过去了。你依然永葆青春，而你的朋友们却慢慢枯萎：你必须离开，否则会被发现是怪物。站在外面的黑暗中，看着他们一边笑一边讲述他们多么想念你的故事。",
@@ -1366,7 +1636,14 @@
     },
     {
      "text": "你在一个某种程度上被社会排斥的凡人群体中找到了陪伴。他们知道你是吸血鬼吗？他们会在意吗？创建两个友好的凡人角色，每个角色都与一个你的印记有关。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
     }
    ]
   },
@@ -1394,6 +1671,12 @@
      "effects": [
       {
        "type": "checkSkill2"
+      },
+      {
+       "type": "loseResource2"
+      },
+      {
+       "type": "loseResource"
       }
      ]
     }
@@ -1493,7 +1776,7 @@
      "text": "你的新朋友将成为你食物的来源。创建一项反映这一点的资源。",
      "effects": [
       {
-       "type": "gainSkill"
+       "type": "gainResource"
       }
      ]
     }
@@ -1504,7 +1787,11 @@
    "entries": [
     {
      "text": "你被困在一个为掠夺成性的凡人（predatory mortals）设下的陷阱中。你被当成哪种罪犯了？这次经历如何帮助你学会更好地捕食凡人？创建一项让美好记忆变质的新技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "你几乎已经暴露，必须彻底改变你的猎食模式。成为社会最低阶层的一员并失去一项资源。如果你已经是最低层人民，请改为成为最高阶层的一员并勾选一项技能。",
@@ -1519,7 +1806,11 @@
     },
     {
      "text": "你与掠夺成性的凡人交往。创造一个令人厌恶的凡人角色成为你的同伙。连你也害怕他。为什么？",
-     "effects": []
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
     }
    ]
   },
@@ -1539,6 +1830,9 @@
      "effects": [
       {
        "type": "createCharacter"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     },
@@ -1546,7 +1840,8 @@
      "text": "万物皆有终结，但显然这人没有。一个你深爱的凡人角色永不衰老。这是魔法吗？还是某种感染？他们仍然算作凡人角色，但他们永远不会因年老而死",
      "effects": [
       {
-       "type": "dieByAge"
+       "type": "note",
+       "text": "该凡人角色永不因年老而死（仍算作凡人角色）"
       }
      ]
     }
@@ -1557,7 +1852,11 @@
    "entries": [
     {
      "text": "黎明之美在召唤你。创建一个专注于美丽、自然或和平的额外记忆槽。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainMemorySlot"
+      }
+     ]
     },
     {
      "text": "你停留得足够久，听到了晨鸟歌声的结束。你被太阳灼伤了——创建一项印记。",
@@ -1569,7 +1868,11 @@
     },
     {
      "text": "伸展双臂，感受温暖。光线穿过你的眼睑，而你没有被火焰吞噬。阳光（或其他环境条件）不再伤害你。创建一项关于自由的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     }
    ]
   },
@@ -1606,15 +1909,27 @@
    "entries": [
     {
      "text": "你奇怪的口音和老套的作风总是让你显得格格不入，最好的情况下是被嘲笑和欺骗，最坏的情况下是被憎恨。通过将一段旧记忆转化为一项新技能来掩盖这些无用的特征，以便融入其中。",
-     "effects": []
+     "effects": [
+      {
+       "type": "memoryToSkill"
+      }
+     ]
     },
     {
      "text": "你的旧记忆正在改变，以反映你在当下需要的态度。改变一段记忆以融入不合时宜的现代元素。不要为此创建新的经历。",
-     "effects": []
+     "effects": [
+      {
+       "type": "editMemory"
+      }
+     ]
     },
     {
      "text": "丢弃一个已有一百多年历史的资源。",
-     "effects": []
+     "effects": [
+      {
+       "type": "destroyResource"
+      }
+     ]
     }
    ]
   },
@@ -1623,19 +1938,29 @@
    "entries": [
     {
      "text": "永恒的内省在创造性行为中体现出来。根据一段失去的记忆获得一项创造性的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "你献身于一门艺术。失去一项资源，但找回一段失去的记忆。",
      "effects": [
       {
        "type": "loseResource"
+      },
+      {
+       "type": "restoreMemory"
       }
      ]
     },
     {
      "text": "你因自己的艺术而声名鹊起，但却不得不隐于阴影。沮丧地摧毁一项资源。获得一项技能。",
      "effects": [
+      {
+       "type": "destroyResource"
+      },
       {
        "type": "gainSkill"
       }
@@ -1690,6 +2015,9 @@
      "text": "哪些人类会向你寻求知识？你给予他们什么？你又拿走了什么？创建一个比你更聪明、更有能力的凡人角色。获得一项资源。",
      "effects": [
       {
+       "type": "createMortal"
+      },
+      {
        "type": "gainResource"
       }
      ]
@@ -1709,11 +2037,22 @@
    "entries": [
     {
      "text": "社会已经变了。旅行对你来说变得如何更容易？恢复任何你仍有一段记忆的固定资源，它们会重新添加到你的资源列表中。",
-     "effects": []
+     "effects": [
+      {
+       "type": "retrieveResource"
+      }
+     ]
     },
     {
      "text": "在这些古老的地方游荡会发掘出什么记忆？找回与固定资源相关的丢失的记忆，或者获取一项你在这里隐藏的新宝藏资源。",
-     "effects": []
+     "effects": [
+      {
+       "type": "restoreMemory"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
     },
     {
      "text": "这里为你设下了什么可怕的陷阱？失去一项资源，获得一项印记。",
@@ -1738,6 +2077,9 @@
        "type": "gainSkill"
       },
       {
+       "type": "gainResource"
+      },
+      {
        "type": "createMortal"
       }
      ]
@@ -1755,7 +2097,11 @@
     },
     {
      "text": "凡人对禁忌知识的渴望导致超自然恐怖降临于世。这是最终会毁灭世界的巨大怪物，还是一个专门针对你的个人恐怖？创建一个或多个不朽角色。",
-     "effects": []
+     "effects": [
+      {
+       "type": "createImmortal"
+      }
+     ]
     }
    ]
   },
@@ -1779,6 +2125,12 @@
       {
        "type": "gainSkillNamed",
        "skill": "这不关我的事"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "killCharacter"
       }
      ]
     },
@@ -1788,6 +2140,12 @@
       {
        "type": "gainSkillNamed",
        "skill": "总有替罪羊"
+      },
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "createCharacter"
       }
      ]
     }
@@ -1809,13 +2167,20 @@
     },
     {
      "text": "你经常将活着的凡人与死去的角色混淆。获得印记我到处都能看到[死去的角色]。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
     },
     {
      "text": "你的身体已经衰老。一项印记变为失能。你必须寻求凡人的帮助。创建一个特别能帮助你的凡人角色。",
      "effects": [
       {
        "type": "crippleMark"
+      },
+      {
+       "type": "createMortal"
       }
      ]
     }
@@ -1898,6 +2263,9 @@
        "type": "checkSkill"
       },
       {
+       "type": "gainSkill"
+      },
+      {
        "type": "createCharacter"
       }
      ]
@@ -1974,7 +2342,11 @@
     },
     {
      "text": "你是如此的古老，以至于不再像一个当前时代的人。创建一个反映这一点的印记。你是如何意识到你的身体不再适合现在的？",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
     }
    ]
   },
@@ -1986,6 +2358,9 @@
      "effects": [
       {
        "type": "createCharacter"
+      },
+      {
+       "type": "gainSkill"
       }
      ]
     },
@@ -1993,16 +2368,23 @@
      "text": "新的通信形式提供了新的狩猎方法。修改一段旧记忆，以包含这种现代通信技术的不合时宜的使用。勾选一项技能，创建一项技能。",
      "effects": [
       {
-       "type": "gainSkill"
+       "type": "editMemory"
       },
       {
        "type": "checkSkill"
+      },
+      {
+       "type": "gainSkill"
       }
      ]
     },
     {
      "text": "语言已发展成超出你理解的东西。你可以调用凡人会以特定方式反应的音素结构，但你无法再分享实际的想法、感受或抽象的概念。创建一项表达这一点的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     }
    ]
   },
@@ -2017,6 +2399,12 @@
       },
       {
        "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "restoreMemory"
       }
      ]
     },
@@ -2052,12 +2440,22 @@
      "effects": [
       {
        "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     },
     {
      "text": "你和朋友躲进一个隐蔽的地方。在那里，你们几个世纪以来第一次分享真正的快乐。创建一项关于爱与安全的技能。",
-     "effects": []
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
     },
     {
      "text": "你和朋友想出了一个绝妙的计划，并付诸实施。勾选一项技能。计划是什么？你要征服世界吗？让死者复活吗？如果合适，你可以现在结束游戏。",
@@ -2085,6 +2483,9 @@
      "effects": [
       {
        "type": "editMemory"
+      },
+      {
+       "type": "loseSkill"
       }
      ]
     },
@@ -2096,6 +2497,9 @@
       },
       {
        "type": "loseResource2"
+      },
+      {
+       "type": "gainResource"
       }
      ]
     }

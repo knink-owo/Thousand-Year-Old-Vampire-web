@@ -24,6 +24,7 @@ const effectLabel: Record<string, string> = {
   stabilizeMemory: '在记忆旁画星号（永不丢失、不再占槽）',
   removeMemorySentence: '删除任意两段记忆的第一句话',
   editMemory: '修改/重塑一段记忆',
+  swapProperNouns: '在两个记忆之间交换专有名词',
   restoreMemory: '恢复一段被遗忘的记忆',
   gainSkill: '获得技能',
   checkSkill: '勾选一项技能',

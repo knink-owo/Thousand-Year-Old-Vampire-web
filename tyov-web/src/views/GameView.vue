@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import PromptCard from '../components/PromptCard.vue'
 import TraitPanel from '../components/TraitPanel.vue'
+import { placeExperienceDecision } from '../engine/core'
+import type { Memory } from '../types/game'
 
 const store = useGameStore()
 const s = computed(() => store.state!)
@@ -18,11 +20,90 @@ const showDiaryEditor = computed(() => {
   return !s.value.usesFastMode && !s.value.finished
 })
 
+// ---- 经历放置抉择（规则书"记忆"节：放进相关记忆，或新建记忆；满了必须先遗忘/入日记） ----
+const placementChoice = ref<string>('') // 'new' = 新建记忆；memory id = 追加到该记忆；'' = 未选定
+
+const placement = computed(() => {
+  const dec = placeExperienceDecision(s.value)
+  const appendable = s.value.memories.filter(m => dec.appendable.includes(m.id))
+  return { appendable, freeSlots: dec.freeSlots, canCreateNew: dec.canCreateNew, mustResolve: dec.mustResolve }
+})
+
+const forgettableMemories = computed(() =>
+  s.value.memories.filter(m => !m.forgotten && !m.stabilized && !m.inDiary),
+)
+
+function memoryLabel(m: Memory): string {
+  if (m.title) return m.title
+  const first = m.experiences[0]?.text ?? ''
+  return first ? (first.length > 26 ? first.slice(0, 26) + '…' : first) : '未命名的记忆'
+}
+
+function resetPlacement() {
+  const p = placement.value
+  if (p.appendable.length > 0) placementChoice.value = p.appendable[0].id
+  else if (p.canCreateNew) placementChoice.value = 'new'
+  else placementChoice.value = ''
+}
+watch(() => store.state?.currentPromptNumber, resetPlacement, { immediate: true })
+// 放置选项变化（如满槽化解后出现空槽/可追加记忆）时，保持选择有效
+watch(
+  () => [
+    placement.value.mustResolve,
+    placement.value.canCreateNew,
+    placement.value.appendable.map(m => m.id).join(','),
+  ],
+  () => {
+    if (placementChoice.value === 'new' && !placement.value.canCreateNew) resetPlacement()
+    else if (placementChoice.value && !placement.value.appendable.some(m => m.id === placementChoice.value)) resetPlacement()
+    else if (!placementChoice.value && !placement.value.mustResolve) resetPlacement()
+  },
+)
+
+const placementValid = computed(() => {
+  if (bypassExperience.value) return true
+  if (placementChoice.value === 'new') return placement.value.canCreateNew
+  if (placementChoice.value) return placement.value.appendable.some(m => m.id === placementChoice.value)
+  return false
+})
+
 const canComplete = computed(() => {
   if (s.value.finished) return false
   if (bypassExperience.value) return true
-  return experienceText.value.trim().length > 0
+  return experienceText.value.trim().length > 0 && placementValid.value
 })
+
+function forgetFromGameView(memoryId: string) {
+  const m = s.value.memories.find(x => x.id === memoryId)
+  if (!m) return
+  if (window.confirm(`确定要遗忘记忆「${memoryLabel(m)}」吗？记忆将被划掉，其中的经历不再占用记忆槽。`)) {
+    store.forgetMemory(memoryId)
+  }
+}
+
+function moveToDiaryFromGame(memoryId: string) {
+  if (!s.value.diaryResourceId) {
+    const n = window.prompt(
+      '创建你的日记（规则书："请给它一个简短的描述"）。例如：一本结实的皮革装订书；一组饰有象形文字图案的罐子；镶嵌金丝边框的可怕仪式面具；一个古老网站上的密码保护论坛。',
+      '一本结实的皮革装订书',
+    )
+    if (n === null) return
+    store.moveMemoryToDiary(memoryId, n.trim() || undefined)
+    return
+  }
+  const inDiaryCount = s.value.memories.filter(x => x.inDiary).length
+  if (inDiaryCount >= 4) {
+    window.alert('日记已经写满 4 段记忆，无法再移入（规则书："一本日记最多可以容纳四段吸血鬼的记忆"）。\n你可以：① 改为遗忘这段记忆；② 到资源页「失去」现有日记（其中包含的记忆将一并划掉），之后再另立一本新日记。')
+    return
+  }
+  store.moveMemoryToDiary(memoryId)
+}
+
+function endGameNow() {
+  if (window.confirm(`确认在此终结「${s.value.name}」的千年之旅吗？故事将画上句号，五位特征化作碑文。`)) {
+    store.endGame(`你选择在此终结自己的千年——${s.value.name}的故事就此合上。`)
+  }
+}
 
 function exportGameJson() {
   const json = store.exportGameJson()
@@ -40,9 +121,18 @@ function completeTurn() {
   // 若无提示文本，直接返回
   if (!store.currentPrompt) return
 
-  // 1. 创建经历（除非明确跳过）
+  // 1. 创建经历（除非明确跳过）——先安放进所选记忆，放不下则必须化解
   if (!bypassExperience.value && experienceText.value.trim()) {
-    store.addExperience(null, experienceText.value.trim(), prevPrompt, store.currentEntryIndex)
+    const res = store.addExperience(
+      placementChoice.value === 'new' ? null : (placementChoice.value || null),
+      experienceText.value.trim(),
+      prevPrompt,
+      store.currentEntryIndex,
+    )
+    if (res.status === 'mustForget') {
+      lastMessage.value = '记忆已满：请先遗忘一段记忆或将一段记忆移入日记，再安放这段经历。'
+      return
+    }
   }
 
   // 2. 日志游戏写入日记
@@ -72,6 +162,7 @@ function completeTurn() {
   experienceText.value = ''
   diaryText.value = ''
   bypassExperience.value = false
+  resetPlacement()
 }
 </script>
 
@@ -90,6 +181,7 @@ function completeTurn() {
         </div>
         <div class="flex gap-2 flex-wrap">
           <button class="btn btn-ghost text-xs" @click="exportGameJson">导出存档 JSON</button>
+          <button class="btn btn-ghost text-xs" @click="endGameNow">结束旅程</button>
         </div>
       </div>
 
@@ -135,9 +227,36 @@ function completeTurn() {
           <label class="block text-sm mb-2 opacity-80">这段经历（请写入某段记忆）</label>
           <textarea
             v-model="experienceText"
-            class="input mb-4"
+            class="input mb-3"
             placeholder="好的经历格式——“[事件的描述]；[我对此的感受或做出的反应]”&#10;例如：我检查了荒野中被遗弃的白骨；我没有找到查尔斯，但我确实发现了武器和宝藏。"
           ></textarea>
+
+          <!-- 经历放置抉择：追加到现有记忆，或新建一段记忆 -->
+          <div class="mb-3 p-3 rounded border border-amber-900/40 bg-black/20">
+            <p class="text-xs tracking-widest opacity-50 mb-2">放 进 哪 段 记 忆</p>
+            <label class="flex items-center gap-2 text-sm mb-1.5 opacity-90 cursor-pointer">
+              <input type="radio" v-model="placementChoice" value="new" :disabled="!placement.canCreateNew" />
+              <span :class="{ 'opacity-40': !placement.canCreateNew }">新建一段记忆</span>
+              <span class="text-xs opacity-50">（剩余 {{ placement.freeSlots }} 槽）</span>
+            </label>
+            <label v-for="m in placement.appendable" :key="m.id" class="flex items-center gap-2 text-sm mb-1.5 opacity-90 cursor-pointer">
+              <input type="radio" v-model="placementChoice" :value="m.id" />
+              <span class="truncate">{{ memoryLabel(m) }}</span>
+              <span class="text-xs opacity-50 shrink-0">（{{ m.experiences.length }}/3）</span>
+            </label>
+
+            <!-- 满槽化解：必须遗忘或移入日记 -->
+            <div v-if="placement.mustResolve" class="mt-2 p-3 rounded border border-red-900/60 bg-red-950/20">
+              <p class="text-xs text-red-300 mb-2">记忆已满——必须先遗忘一段记忆或将一段记忆移入日记，才能安放新的经历。</p>
+              <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                <div v-for="m in forgettableMemories" :key="m.id" class="flex items-center gap-2 text-xs">
+                  <span class="flex-1 truncate">{{ memoryLabel(m) }}</span>
+                  <button class="px-2 py-0.5 rounded border border-cyan-900/60 text-cyan-200/80 shrink-0" @click="moveToDiaryFromGame(m.id)">入日记</button>
+                  <button class="px-2 py-0.5 rounded border border-red-900/60 text-red-300/90 shrink-0" @click="forgetFromGameView(m.id)">遗忘</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div v-if="showDiaryEditor">

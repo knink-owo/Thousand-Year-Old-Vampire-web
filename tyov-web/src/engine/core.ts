@@ -92,16 +92,23 @@ export function hasLosableResource(state: GameState): boolean {
  * 技能/资源替代检查（规则书"游玩游戏"节）：
  * 提示指示勾选技能但无技能可勾选 → 失去一项资源
  * 提示指示失去资源但无法这样做 → 勾选一项技能
- * 两者都无法做到 → 游戏结束
+ * 提示指示失去技能但无技能可失去 → 失去一项资源
+ * 以上两者都无法做到 → 游戏结束
+ * （规则书："你只能在技能和资源之间进行替换"）
  */
 export function checkAlternative(
   state: GameState,
-  intent: 'checkSkill' | 'loseResource',
+  intent: 'checkSkill' | 'loseResource' | 'loseSkill',
 ): { outcome: 'ok' | 'alternative' | 'gameOver'; reason?: string } {
   if (intent === 'checkSkill') {
     if (hasCheckableSkill(state)) return { outcome: 'ok' };
     if (hasLosableResource(state)) return { outcome: 'alternative', reason: '无技能可勾选，改为失去一项资源' };
     return { outcome: 'gameOver', reason: '必须勾选技能或失去资源，但你两者都没有——游戏结束' };
+  }
+  if (intent === 'loseSkill') {
+    if (state.skills.some(s => !s.lost)) return { outcome: 'ok' };
+    if (hasLosableResource(state)) return { outcome: 'alternative', reason: '无技能可失去，改为失去一项资源' };
+    return { outcome: 'gameOver', reason: '必须失去技能或资源，但你两者都没有——游戏结束' };
   }
   // loseResource
   if (hasLosableResource(state)) return { outcome: 'ok' };
@@ -128,33 +135,29 @@ export const DEFAULT_MEMORY_SLOTS = 5;
 export const MAX_EXPERIENCES_PER_MEMORY = 3;
 export const MAX_MEMORIES_PER_DIARY = 4;
 
-/** 记忆槽是否已满（考虑已移入日记或已稳定化的记忆不占槽） */
+/** 记忆槽是否已满（考虑已移入日记、已稳定化、【已遗忘划掉】的记忆不占槽） */
 export function usedMemorySlots(state: GameState): number {
-  return state.memories.filter(m => !m.inDiary && !m.stabilized).length;
+  return state.memories.filter(m => !m.inDiary && !m.stabilized && !m.forgotten).length;
 }
 
 /**
- * 添加经历时的记忆放置决策：
- *  - 若某段记忆（不在日记中）与主题相关且未满 3 条 → 放入
- *  - 否则若有空槽 → 新建记忆
- *  - 否则玩家必须选择：遗忘一段旧记忆 或 移入日记（若有日记实体）
- * 返回决策结构，由 UI/store 交互完成。
+ * 新经历的记忆放置决策（规则书"记忆"节）：
+ *  - 可追加：未入日记、未恒存（星号）、未遗忘、未满 3 条经历的记忆
+ *  - 可新建：存在空记忆槽
+ *  - 两者皆无 → mustResolve：玩家必须先遗忘一段记忆或移入日记，才能放置新经历
  */
-export function placeExperienceDecision(
-  state: GameState,
-  _experienceText: string,
-): {
-  decision: 'append' | 'new' | 'mustForget';
-  candidates: string[];   // memory ids 可附加
-  freeSlots: number;
-} {
+export interface ExperiencePlacement {
+  appendable: string[];   // 可追加经历的 memory ids
+  freeSlots: number;      // 剩余记忆槽（不含日记/恒存/已遗忘）
+  canCreateNew: boolean;  // freeSlots > 0
+  mustResolve: boolean;   // 无可追加且无空槽 → 必须先遗忘或移入日记
+}
+
+export function placeExperienceDecision(state: GameState): ExperiencePlacement {
   const freeSlots = state.memorySlots - usedMemorySlots(state);
-  const appendable = state.memories.filter(m => !m.inDiary && !m.stabilized && m.experiences.length < MAX_EXPERIENCES_PER_MEMORY);
-  if (appendable.length > 0) {
-    return { decision: 'append', candidates: appendable.map(m => m.id), freeSlots };
-  }
-  if (freeSlots > 0) {
-    return { decision: 'new', candidates: [], freeSlots };
-  }
-  return { decision: 'mustForget', candidates: appendable.map(m => m.id), freeSlots };
+  const appendable = state.memories
+    .filter(m => !m.inDiary && !m.stabilized && !m.forgotten && m.experiences.length < MAX_EXPERIENCES_PER_MEMORY)
+    .map(m => m.id);
+  const canCreateNew = freeSlots > 0;
+  return { appendable, freeSlots, canCreateNew, mustResolve: appendable.length === 0 && !canCreateNew };
 }

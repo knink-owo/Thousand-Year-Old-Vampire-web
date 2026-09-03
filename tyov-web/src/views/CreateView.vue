@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useGameStore } from '../stores/game'
 
 const store = useGameStore()
-const hasSave = computed(() => !!store.state)
+const hasSave = computed(() => !!store.state && !store.state.finished)
 
 // ---- 建卡表单 ----
 const name = ref('')
@@ -107,6 +107,12 @@ function exportPack() {
 
 function buildAndStart() {
   if (!canStart.value) return
+  // 记忆槽只有 5 个：第一段记忆占一个，额外经历最多 4 段（规则书建议 3 段 + 成为吸血鬼的经历）
+  const extraCount = memories.value.slice(1).filter(m => m.text.trim()).length
+  if (extraCount > 4) {
+    window.alert(`记忆槽共有 5 个，第一段记忆已占用一个——额外经历最多 4 段（规则书建议 3 段，另加一段成为吸血鬼的经历）。你目前填写了 ${extraCount} 段，请删减后再开始。`)
+    return
+  }
   store.newGame(name.value.trim(), fastMode.value)
 
   const s = store.state
@@ -142,17 +148,17 @@ function buildAndStart() {
   <div class="fade-in">
     <!-- 已有存档恢复 -->
     <div v-if="hasSave" class="card p-6 mb-8 text-center">
-      <p class="text-lg">游戏尚未结束：<span class="gold-text">{{ store.state?.name }}</span></p>
+      <p class="text-lg">你的旅程尚未终结：<span class="gold-text">{{ store.state?.name }}</span></p>
       <div class="flex gap-4 justify-center mt-4 flex-wrap">
         <button class="btn btn-gold" @click="store.startGame(store.state!)">继续旅程</button>
-        <button class="btn btn-ghost" @click="resetAll">弃置旧档</button>
-        <button class="btn btn-ghost" @click="clearAllData">清除全部数据</button>
+        <button class="btn btn-ghost" @click="resetAll">放弃这段旅程</button>
+        <button class="btn btn-ghost" @click="clearAllData">抹去一切记录</button>
       </div>
     </div>
 
     <!-- 存档导入（无存档时也提供） -->
     <div v-if="!hasSave" class="card p-5 mb-8 text-center">
-      <p class="text-sm opacity-80 mb-3">已有游戏存档文件？可从 JSON 恢复旅程。</p>
+      <p class="text-sm opacity-80 mb-3">曾有一段千年被存在别处？可从存档文件续写。</p>
       <label class="cursor-pointer">
         <input type="file" accept=".json" class="hidden" @change="onImportSave" />
         <span class="btn btn-ghost text-sm">导入存档文件 (.json)</span>
@@ -161,7 +167,7 @@ function buildAndStart() {
     </div>
 
     <div class="parchment p-8 md:p-10 text-ink">
-      <h2 class="title-serif text-2xl mb-2">创造你的吸血鬼</h2>
+      <h2 class="title-serif text-2xl mb-2">始于凡尘</h2>
       <p class="text-sm opacity-80 leading-relaxed mb-8">
         想象一个远古时代的人——一位罗马皇帝、一位美索不达米亚的助产士、一位法国骑士。
         这个人将成为你的吸血鬼。想象他们何时何地出生，以及他们生前是谁。

@@ -10,6 +10,12 @@ const basePath = process.env.BASE_PATH || '/'
 // https://vite.dev/config/
 export default defineConfig({
   base: basePath,
+  server: {
+    watch: {
+      // 忽略编辑器原子写入产生的瞬时临时目录（避免 EBUSY 崩溃）
+      ignored: ['**/*.tmpdir/**', '**/*.tmp', '**/.tmp/**'],
+    },
+  },
   plugins: [
     vue(),
     tailwindcss(),

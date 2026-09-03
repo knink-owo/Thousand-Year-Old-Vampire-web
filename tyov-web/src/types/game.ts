@@ -13,6 +13,7 @@ export interface Experience {
   promptNumber: number | null; // 来源提示编号
   promptEntry: number | null;  // 条目序号 1..3
   createdAt: number;
+  lost?: boolean;              // 被划去（如提示51第1条目随机失去）——保留可读，可恢复
 }
 
 /** 记忆：容纳最多 3 条经历 */
@@ -61,6 +62,7 @@ export interface Mark {
   name: string;
   description?: string;
   removed: boolean;
+  crippled?: boolean;   // 已失能（提示61第3条目）：不再作为可战斗/自立的标志
 }
 
 /** 效果指令：提示条目的结构化效果（由规则引擎从文本提取，玩家可确认/调整） */
@@ -75,6 +77,7 @@ export type Effect =
   | { type: 'stabilizeMemory' }        // 星号：记忆永不丢失、不占槽
   | { type: 'removeMemorySentence' }   // 删除任意两段记忆的第一句话
   | { type: 'editMemory' }             // 修改/重塑一段记忆
+  | { type: 'swapProperNouns' }        // 在两个记忆之间交换专有名词
   | { type: 'restoreMemory' }
   | { type: 'gainSkill'; name?: string }
   | { type: 'checkSkill' }             // 勾选一项技能
@@ -160,6 +163,21 @@ export interface GameLogEntry {
   text: string;
   atPrompt: number;
   createdAt: number;
+}
+
+/** 历史记录摘要（首页"翻阅历史"用）——不保存全量状态，仅概览 */
+export interface GameRecord {
+  id: string;
+  name: string;
+  createdAt: number;
+  finished: boolean;
+  finishReason?: string;
+  finishedAt?: number;
+  moves: number;          // 已回答提示次数
+  currentPrompt: number;  // 当前/结束提示编号
+  memoryCount: number;
+  skillCount: number;
+  resourceCount: number;
 }
 
 /** 游戏状态 */

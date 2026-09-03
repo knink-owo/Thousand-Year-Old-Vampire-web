@@ -6,6 +6,7 @@ import {
   checkAlternative,
   entryCausesGameOver,
   placeExperienceDecision,
+  usedMemorySlots,
   DEFAULT_MEMORY_SLOTS,
 } from './core';
 import type { GameState, Prompt, PromptPack } from '../types/game';
@@ -151,6 +152,24 @@ describe('checkAlternative', () => {
     const r = checkAlternative(state, 'loseResource');
     expect(r.outcome).toBe('alternative');
   });
+
+  it('失去技能意图：已勾选的技能也算可失去；全无则看资源，再全无 → gameOver', () => {
+    const state = makeState({
+      skills: [{ id: 's1', name: '剑术', checked: true, lost: false }],
+      resources: [],
+    });
+    expect(checkAlternative(state, 'loseSkill').outcome).toBe('ok');
+    const state2 = makeState({
+      skills: [{ id: 's1', name: '剑术', checked: true, lost: true }],
+      resources: [{ id: 'r1', name: '城堡', fixed: true, lost: false, isDiary: false }],
+    });
+    expect(checkAlternative(state2, 'loseSkill').outcome).toBe('alternative');
+    const state3 = makeState({
+      skills: [{ id: 's1', name: '剑术', checked: true, lost: true }],
+      resources: [{ id: 'r1', name: '城堡', fixed: true, lost: true, isDiary: false }],
+    });
+    expect(checkAlternative(state3, 'loseSkill').outcome).toBe('gameOver');
+  });
 });
 
 describe('entryCausesGameOver', () => {
@@ -168,30 +187,60 @@ describe('entryCausesGameOver', () => {
   });
 });
 
+describe('usedMemorySlots', () => {
+  it('日记、恒存、已遗忘的记忆都不占用记忆槽', () => {
+    const state = makeState({
+      memorySlots: 5,
+      memories: [
+        { id: 'm1', title: '普通', experiences: [{ id: 'e1', text: 'x', promptNumber: 1, promptEntry: 1, createdAt: 0 }], inDiary: false, stabilized: false },
+        { id: 'm2', title: '日记', experiences: [], inDiary: true, stabilized: false },
+        { id: 'm3', title: '恒存', experiences: [], inDiary: false, stabilized: true },
+        { id: 'm4', title: '遗忘', experiences: [], inDiary: false, stabilized: false, forgotten: true },
+      ],
+    });
+    expect(usedMemorySlots(state)).toBe(1);
+  });
+});
+
 describe('placeExperienceDecision', () => {
-  it('有可附加且有空间的记忆 → append', () => {
+  it('有可追加且未满的记忆 → appendable 列出', () => {
     const state = makeState({ memories: [{ id: 'm1', title: '旧日', experiences: [{ id: 'e1', text: 'x', promptNumber: 1, promptEntry: 1, createdAt: 0 }], inDiary: false, stabilized: false }] });
-    const d = placeExperienceDecision(state, '新经历');
-    expect(d.decision).toBe('append');
-    expect(d.candidates).toContain('m1');
+    const d = placeExperienceDecision(state);
+    expect(d.appendable).toContain('m1');
+    expect(d.canCreateNew).toBe(true);
+    expect(d.mustResolve).toBe(false);
   });
 
-  it('记忆满但有空格 → new', () => {
+  it('满记忆但有空格 → canCreateNew', () => {
     const state = makeState({ memories: [
       { id: 'm1', title: '满', experiences: Array.from({ length: 3 }, (_, i) => ({ id: `e${i}`, text: 'x', promptNumber: 1, promptEntry: 1, createdAt: 0 })), inDiary: false, stabilized: false },
     ] });
-    const d = placeExperienceDecision(state, '新');
-    expect(d.decision).toBe('new');
+    const d = placeExperienceDecision(state);
+    expect(d.appendable).toEqual([]);
+    expect(d.canCreateNew).toBe(true);
+    expect(d.mustResolve).toBe(false);
   });
 
-  it('空间全满 → mustForget', () => {
+  it('空间全满且无可追加 → mustResolve', () => {
     const state = makeState({
       memorySlots: 1,
       memories: [
         { id: 'm1', title: '满', experiences: Array.from({ length: 3 }, (_, i) => ({ id: `e${i}`, text: 'x', promptNumber: 1, promptEntry: 1, createdAt: 0 })), inDiary: false, stabilized: false },
       ],
     });
-    const d = placeExperienceDecision(state, '新');
-    expect(d.decision).toBe('mustForget');
+    const d = placeExperienceDecision(state);
+    expect(d.mustResolve).toBe(true);
+    expect(d.canCreateNew).toBe(false);
+  });
+
+  it('已遗忘/恒存/入日记的记忆不可追加', () => {
+    const state = makeState({ memories: [
+      { id: 'm1', title: '遗忘', experiences: [], inDiary: false, stabilized: false, forgotten: true },
+      { id: 'm2', title: '恒存', experiences: [], inDiary: false, stabilized: true },
+      { id: 'm3', title: '日记', experiences: [], inDiary: true, stabilized: false },
+    ] });
+    const d = placeExperienceDecision(state);
+    expect(d.appendable).toEqual([]);
+    expect(d.canCreateNew).toBe(true);
   });
 });
