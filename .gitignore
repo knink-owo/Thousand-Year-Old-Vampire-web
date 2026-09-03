@@ -1,0 +1,23 @@
+# ============ 版权材料：绝不能提交到公开仓库 ============
+千年版规则书.pdf
+规则书全文.txt
+wiki_tyov_raw.txt
+
+# ============ 构建与依赖 ============
+node_modules/
+dist/
+*.local
+
+# ============ 临时文件 ============
+.tmp/
+*.log
+.DS_Store
+
+# ============ 工作区辅助（仅保留脚本，不提交数据产物） ============
+src-data/
+!src-data/.gitkeep
+
+# 调试产物与截图
+.tools/*.png
+.tools/rt_save.json
+.tools/debug_blocks.txt
