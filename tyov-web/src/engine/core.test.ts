@@ -5,6 +5,7 @@ import {
   advancePrompt,
   checkAlternative,
   entryCausesGameOver,
+  entrySkipsExperience,
   placeExperienceDecision,
   usedMemorySlots,
   DEFAULT_MEMORY_SLOTS,
@@ -242,5 +243,24 @@ describe('placeExperienceDecision', () => {
     const d = placeExperienceDecision(state);
     expect(d.appendable).toEqual([]);
     expect(d.canCreateNew).toBe(true);
+  });
+});
+
+describe('entrySkipsExperience', () => {
+  it('识别规则书明确"不要创建经历"的条目（24.2/37.1/43.2/54.2 句式）', () => {
+    expect(entrySkipsExperience({ text: '删除任意两段记忆的第一句话。你不太确定为什么。不要为此创建一个经历。' })).toBe(true);
+    expect(entrySkipsExperience({ text: '失去一个你没有相应记忆的资源。不要为这个提示创建新的经历，它只是在你沉默凝视时发生。' })).toBe(true);
+    expect(entrySkipsExperience({ text: '在两个记忆之间交换专有名词。不要为此创建经历。' })).toBe(true);
+    expect(entrySkipsExperience({ text: '改变一段记忆以融入不合时宜的现代元素。不要为此创建新的经历。' })).toBe(true);
+  });
+
+  it('正常的提示条目照常创建经历', () => {
+    expect(entrySkipsExperience({ text: '对你新本性的恐惧使你退出了社会。你躲在哪里？如何觅食？创造一个可以庇护你的固定资源。' })).toBe(false);
+    expect(entrySkipsExperience({ text: '你不懂这个新地方的语言——你如何克服这个障碍？' })).toBe(false);
+  });
+
+  it('含"不要…写下/创造"但非经历句式的条目不误判', () => {
+    expect(entrySkipsExperience({ text: '不要实际写下你对这些人的所作所为。' })).toBe(false);
+    expect(entrySkipsExperience({ text: '失去一项资源。不要犹豫，命运不会等你。' })).toBe(false);
   });
 });

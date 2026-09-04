@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import PromptCard from '../components/PromptCard.vue'
 import TraitPanel from '../components/TraitPanel.vue'
-import { placeExperienceDecision, alternativeSuggestion } from '../engine/core'
+import { placeExperienceDecision, alternativeSuggestion, entrySkipsExperience } from '../engine/core'
 import { effectText } from '../engine/effectLabels'
 import type { Memory } from '../types/game'
 
@@ -14,7 +14,12 @@ const emit = defineEmits<{ (e: 'navigate', to: 'home'): void }>()
 
 const experienceText = ref('')
 const diaryText = ref('')
-const bypassExperience = ref(false)
+
+// ---- 是否创建经历：系统自动判定（规则书：部分提示明确要求"不要为此创建经历"）----
+const bypassExperience = computed(() => {
+  const entry = store.currentPrompt?.entries[store.currentEntryIndex - 1]
+  return entry ? entrySkipsExperience(entry) : false
+})
 
 const rollResult = ref<{ d10: number; d6: number; delta: number; to: number } | null>(null)
 const lastMessage = ref('')
@@ -215,7 +220,6 @@ function completeTurn() {
   // 清空输入
   experienceText.value = ''
   diaryText.value = ''
-  bypassExperience.value = false
   resetPlacement()
 }
 </script>
@@ -331,11 +335,8 @@ function completeTurn() {
       <div v-if="!s.finished" class="card p-5">
         <p class="text-xs tracking-[0.3em] opacity-50 mb-3">回 答 提 示</p>
 
-        <div class="flex items-center gap-2 mb-3 text-xs opacity-60">
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" v-model="bypassExperience" />
-            本提示不创建经历（如提示明确要求）
-          </label>
+        <div v-if="bypassExperience" class="mb-3 p-3 rounded border border-amber-900/40 bg-black/20 text-sm opacity-80">
+          ⚙ 系统裁定：本提示明确要求不创建经历——已自动跳过经历书写与记忆放置。
         </div>
 
         <div v-if="!bypassExperience">

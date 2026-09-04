@@ -157,6 +157,16 @@ export function entryCausesGameOver(prompt: Prompt, entryIndex: number): boolean
   return entry.effects.some(e => e.type === 'gameOver') || entry.text.includes('游戏结束');
 }
 
+/**
+ * 检查提示条目是否明确要求"不要创建经历"（规则书原文句式）：
+ * 如提示24第2条目"不要为此创建一个经历"、37第1条目"不要为这个提示创建新的经历"、
+ * 43第2条目"不要为此创建经历"、54第2条目"不要为此创建新的经历"。
+ * 系统据此自动跳过本轮的经历书写与记忆放置。
+ */
+export function entrySkipsExperience(entry: { text: string }): boolean {
+  return entry.text.includes('不要') && (entry.text.includes('创建') || entry.text.includes('创造')) && entry.text.includes('经历');
+}
+
 /** 读取提示已触发次数 */
 export function visitsOf(state: GameState, promptNumber: number): number {
   return state.promptVisits[promptNumber] ?? 0;
