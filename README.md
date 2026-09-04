@@ -1,54 +1,119 @@
 # 千年吸血鬼 · Thousand Year Old Vampire 网页版
 
-单人日记式 TRPG 的网页数字工具。基于规则书《千年老吸血鬼》中文翻译版制作，包含建卡、D10−D6 提示移动回合引擎、记忆/技能/资源/角色/印记五特征管理、日志写作、存档导入导出。
+> 你永生不死。你将遗忘一切。
+> 单人日记式角色扮演游戏 · 记录你的千年
 
-## 本地运行
+一款 **单人、无 GM、日记式（Journaling）TRPG** 的网页数字工具。你扮演一尊始于十世纪的吸血鬼，通过回答提示、掷骰、写日记，体验千年岁月对记忆的无情碾压——从失去凡人身份开始，直至其不可避免的毁灭。
+
+游戏机制改编自 **Tim Hutchings 的作品 *Thousand Year Old Vampire***（2019 年发行的权威单人日记式 TRPG），界面为原创的网页数字工具。
+
+**在线游玩：** <https://knink-owo.github.io/tyov-vampire/>
+
+---
+
+## 🧛 这是什么游戏
+
+- **没有 GM、没有骰子房规之外的系统负担**：你只需要纸笔（这里是网页）和两颗骰子
+- **核心循环**：阅读提示 → 写下经历与日记 → 掷 D10 与 D6（差为正向后、为负向前、为零停留）→ 在 80 条提示间穿行千年
+- **五种特征**：记忆（5 槽，每段至多 3 条经历）、技能、资源、角色、印记
+- **两种玩法**：快速模式适合速览一段人生；日志模式适合认真写一本"吸血鬼传记"
+- **数据 100% 归属你**：存档只存在你自己的浏览器里，可离线游玩，也可导出/导入存档文件
+
+## 📖 官方信息（版权声明）
+
+本工具为个人学习与游玩而作，游戏内容版权归原作者所有，侵删。
+
+| 项目 | 链接 |
+|---|---|
+| 作者 | Tim Hutchings |
+| 官方 itch.io 页面 | <https://timhutchings.itch.io/tyov> |
+| 官方网站 | <https://www.thousandyearoldvampire.com/> |
+| 本工具源码 | <https://github.com/knink-owo/tyov-vampire> |
+
+---
+
+## 🕹️ 使用说明
+
+### 首次开始
+
+1. 打开**在线地址**（或按下方"本地运行"启动）
+2. 点击 **「开始旅程」**，按规则书流程建卡：
+   - 凡人之名与第一段记忆（生平概述）
+   - 至少三位凡人、三项技能、三项资源
+   - 三项经历（各录入一段记忆）
+   - 一位不朽者（赋予你永生的存在）、一项印记及成为吸血鬼的经历
+3. 全部填写完毕后，点击 **「🩸 成为黑夜的生物」**
+
+### 游玩
+
+- **每回合**：阅读当前提示 → 写一段经历（日志模式再多写一段日记）→ 点击 **「完成这一回合，掷出命运之骰」**
+- 骰子裁决：D10 − D6，正数向后移动提示、负数向前移动、零停留原处；提示 1 不可越前
+- **右侧面板**管理五种特征：记忆（可遗忘、可移入日记、可画星恒存）、技能（勾选/失去）、资源、角色、印记
+- 同一提示第二次、第三次触达时，会出现第二、第三条目
+- **游戏结束**：当你被指示勾选技能或失去资源却两者皆无时；或提示宣告终结
+
+### 保存与备份
+
+- 进度**自动保存**在当前浏览器的 localStorage 中（刷新/关闭后重开仍可继续，请勿使用无痕模式）
+- 首页「未竟之旅」可一键继续；「翻阅历史」可查看历次旅程摘要
+- 建议定期 **「导出存档 JSON」** 备份；换设备时在新设备上「导入存档文件」继续
+
+### 导入提示包
+
+提示包是独立数据层。建卡页底部可**导入/导出** `.json` 提示包（自定义或社区包）。应用内置从规则书整理的中文提示包（80 条提示）。
+
+---
+
+## 💻 本地安装与运行
+
+环境要求：**Node.js ≥ 20**（建议 LTS）
 
 ```bash
-cd tyov-web
+# 1. 获取代码
+git clone https://github.com/knink-owo/tyov-vampire.git
+cd tyov-vampire/tyov-web
+
+# 2. 安装依赖
 npm install
-npm run dev        # 开发模式：http://localhost:5173
-npm run build      # 生产构建：输出 dist/
-npm run preview    # 预览生产版
-npm test           # 单元测试
+
+# 3. 开发模式（热更新）
+npm run dev        # 打开 http://localhost:5173
+
+# 4. 生产构建与预览
+npm run build      # 产物输出到 dist/
+npm run preview    # 本地预览生产版
 ```
 
-## 部署到 GitHub Pages（自动）
+| 命令 | 说明 |
+|---|---|
+| `npm run dev` | 开发服务器（热更新） |
+| `npm run build` | 类型检查 + 生产构建（含 PWA） |
+| `npm run preview` | 预览生产构建 |
+| `npm test` | 运行单元测试 |
 
-本项目已配置 GitHub Actions：**推送 `main` 分支后自动构建并发布**。
+### 离线安装（PWA）
 
-### 一次性设置（约 3 分钟）
+生产部署后（或 `npm run preview`），可通过浏览器地址栏的**安装图标**将本工具"安装"到桌面/主屏幕，之后可离线游玩。
 
-1. **创建 GitHub 仓库**（如 `tyov-vampire`），并推送本目录代码：
-   ```bash
-   git init
-   git add .
-   git commit -m "初版：千年吸血鬼网页工具"
-   git branch -M main
-   git remote add origin https://github.com/<你的用户名>/<仓库名>.git
-   git push -u origin main
-   ```
-2. **开启 GitHub Pages**：
-   - 仓库 → **Settings** → **Pages**
-   - Source 选择 **GitHub Actions**（而不是"Deploy from a branch"）
-   - 之后每次 push 到 main，Actions 会自动构建部署
-3. **访问地址**：`https://<你的用户名>.github.io/<仓库名>/`
-   - 构建时已自动使用 `/仓库名/` 子路径，资源路径不会 404
+### 部署到 GitHub Pages
 
-### 手动构建验证（可选）
+本项目已配置 GitHub Actions：推送 `main` 分支后自动构建并发布。
 
-```bash
-cd tyov-web
-npm run build -- --base=/你的仓库名/   # 模拟线上子路径
-npm run preview                        # 检查资源路径是否正确
-```
+1. 将代码推送到自己的 GitHub 仓库（`git push -u origin main`）
+2. 仓库 → **Settings** → **Pages** → Source 选择 **GitHub Actions**
+3. 访问 `https://<你的用户名>.github.io/<仓库名>/`（构建时已自动适配子路径）
 
-## 提示包（重要）
+---
 
-- 应用内置了从规则书提取的官方提示包（`src/data/official-pack.json`，80 条提示、222 个条目）。
-- **规则书 PDF 与提取文本不提交到仓库**（见根目录 `.gitignore`）。
-- 界面为"壳工具"设计：提示包是独立数据层，可在建卡页导入/导出自定义或社区提示包。
+## ⚠️ 版权与许可
 
-## 技术栈
+- 规则书原文（PDF）与提取文本**不包含在仓库中**（见 `.gitignore`）
+- 内置提示包数据源自作者提供的规则书中译文本，**仅限个人学习与游玩**
+- 如需公开传播、商业化或改编，请联系原作者 Tim Hutchings 获取授权
+- 若您是本作的版权方且认为本工具不妥，请通过 GitHub Issues 联系我们，将在确认后第一时间移除相关内容
 
-Vue 3 + TypeScript + Vite + Pinia + Tailwind CSS + vite-plugin-pwa（离线可用）
+## 🛠️ 技术栈
+
+Vue 3 · TypeScript · Vite · Pinia · Tailwind CSS · vite-plugin-pwa（离线可用）· Vitest
+
+开发细节见 [开发文档.md](./开发文档.md)。
