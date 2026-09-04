@@ -7,7 +7,7 @@
 
 游戏机制改编自 **Tim Hutchings 的作品 *Thousand Year Old Vampire***（2019 年发行的权威单人日记式 TRPG），界面为原创的网页数字工具。
 
-**在线游玩：** <https://knink-owo.github.io/tyov-vampire/>
+**在线游玩：** <https://knink-owo.github.io/Thousand-Year-Old-Vampire-web/>
 
 ---
 
@@ -28,7 +28,7 @@
 | 作者 | Tim Hutchings |
 | 官方 itch.io 页面 | <https://timhutchings.itch.io/tyov> |
 | 官方网站 | <https://www.thousandyearoldvampire.com/> |
-| 本工具源码 | <https://github.com/knink-owo/tyov-vampire> |
+| 本工具源码 | <https://github.com/knink-owo/Thousand-Year-Old-Vampire-web> |
 
 ---
 
@@ -71,8 +71,8 @@
 
 ```bash
 # 1. 获取代码
-git clone https://github.com/knink-owo/tyov-vampire.git
-cd tyov-vampire/tyov-web
+git clone https://github.com/knink-owo/Thousand-Year-Old-Vampire-web.git
+cd Thousand-Year-Old-Vampire-web/tyov-web
 
 # 2. 安装依赖
 npm install
