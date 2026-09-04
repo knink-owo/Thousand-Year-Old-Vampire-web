@@ -126,28 +126,6 @@ export function checkAlternative(
   return { outcome: 'gameOver', reason: '必须失去资源或勾选技能，但你两者都没有——游戏结束' };
 }
 
-/** 供替代规则检查的效果类型意图 */
-export function alternativeIntent(effectType: string): 'checkSkill' | 'loseResource' | 'loseSkill' | 'loseCheckedSkill' | 'loseUncheckedSkill' | null {
-  switch (effectType) {
-    case 'checkSkill': case 'checkSkill2': case 'checkSkill3': return 'checkSkill';
-    case 'loseResource': case 'loseResource2': case 'loseResource3':
-    case 'loseAllFixedResources': case 'loseFixedResource': return 'loseResource';
-    case 'loseSkill': return 'loseSkill';
-    case 'loseCheckedSkill': return 'loseCheckedSkill';
-    case 'loseUncheckedSkill': return 'loseUncheckedSkill';
-    default: return null;
-  }
-}
-
-/** UI 用：某个效果当前是否需要替代执行（供回合效果清单显示建议） */
-export function alternativeSuggestion(state: GameState, effectType: string): string | null {
-  const intent = alternativeIntent(effectType);
-  if (!intent) return null;
-  const r = checkAlternative(state, intent);
-  if (r.outcome === 'ok') return null;
-  return r.reason ?? '';
-}
-
 /**
  * 检查提示条目是否触发游戏结束（效果列表含 gameOver 或文本含"游戏结束"）
  */

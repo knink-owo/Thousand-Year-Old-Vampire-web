@@ -3,8 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import PromptCard from '../components/PromptCard.vue'
 import TraitPanel from '../components/TraitPanel.vue'
-import { placeExperienceDecision, alternativeSuggestion, entrySkipsExperience } from '../engine/core'
-import { effectText } from '../engine/effectLabels'
+import { placeExperienceDecision, entrySkipsExperience } from '../engine/core'
 import type { Memory } from '../types/game'
 
 const store = useGameStore()
@@ -24,27 +23,14 @@ const bypassExperience = computed(() => {
 const rollResult = ref<{ d10: number; d6: number; delta: number; to: number } | null>(null)
 const lastMessage = ref('')
 
-// ---- 效果执行清单（规则书：几乎每次收到提示，某个特征都会被修改）----
-const effectChecked = ref<Record<number, boolean>>({})
+// ---- 当前条目效果（梦境之地分支判定用）----
+const entryEffects = computed(() => store.currentPrompt?.entries[store.currentEntryIndex - 1]?.effects ?? [])
 watch(
   () => [store.state?.currentPromptNumber, store.currentEntryIndex],
   () => {
-    effectChecked.value = {}
     showAging.value = false
   },
 )
-const entryEffects = computed(() => store.currentPrompt?.entries[store.currentEntryIndex - 1]?.effects ?? [])
-const checkableEffects = computed(() => entryEffects.value.map((e, i) => ({ e, i })).filter(x => x.e.type !== 'note'))
-const uncheckedCount = computed(() => checkableEffects.value.filter(x => !effectChecked.value[x.i]).length)
-const effectsDone = computed(() => checkableEffects.value.length > 0 && uncheckedCount.value === 0)
-const effectSuggestions = computed(() =>
-  entryEffects.value
-    .map(e => alternativeSuggestion(s.value, e.type))
-    .filter((x): x is string => !!x),
-)
-function checkAllEffects() {
-  for (const { i } of checkableEffects.value) effectChecked.value[i] = true
-}
 
 // ---- 梦境之地（提示48第3条目）----
 const dreamWorldEntry = computed(() => entryEffects.value.some(e => e.type === 'dreamWorld'))
@@ -282,31 +268,6 @@ function completeTurn() {
         </template>
       </div>
 
-      <!-- 效果执行清单 -->
-      <div v-if="entryEffects.length > 0 && !s.finished" class="card p-5">
-        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">▸ 本提示的机制效果 · 处理清单</p>
-        <ul class="space-y-2 text-sm">
-          <li v-for="({ e, i }) in checkableEffects" :key="i" class="flex items-start gap-2">
-            <input type="checkbox" class="mt-1 shrink-0" v-model="effectChecked[i]" />
-            <span class="flex-1" :class="{ 'opacity-40': effectChecked[i] }">{{ effectText(e) }}</span>
-          </li>
-          <li v-for="(e, i) in entryEffects.filter(x => x.type === 'note')" :key="'n' + i" class="flex items-start gap-2">
-            <span class="mt-0.5 shrink-0 opacity-60">📜</span>
-            <span class="flex-1 opacity-70 italic">{{ effectText(e) }}</span>
-          </li>
-        </ul>
-        <div v-if="effectSuggestions.length" class="mt-2 space-y-1">
-          <p v-for="sg in effectSuggestions" :key="sg" class="text-xs" :class="sg.includes('游戏结束') ? 'text-red-300' : 'text-amber-200/80'">
-            ⚠ {{ sg }}
-          </p>
-        </div>
-        <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
-          <button class="btn btn-ghost text-xs" @click="checkAllEffects">全部已处理</button>
-          <span v-if="uncheckedCount > 0" class="text-xs opacity-60">还有 {{ uncheckedCount }} 项未标记 —— 规则由你掌握，可忽略</span>
-          <span v-else class="text-xs text-emerald-300/80">本提示效果已全部处理 ✓</span>
-        </div>
-      </div>
-
       <!-- 掷骰结果 -->
       <div v-if="rollResult" class="card p-5 text-center">
         <p class="text-xs tracking-[0.3em] opacity-50 mb-3">骰 子 之 判</p>
@@ -387,9 +348,6 @@ function completeTurn() {
         <button class="btn btn-gold w-full" :disabled="!canComplete" @click="completeTurn">
           完成这一回合，掷出命运之骰
         </button>
-        <p v-if="checkableEffects.length > 0 && !effectsDone" class="mt-2 text-xs opacity-60 text-center">
-          本提示尚有 {{ uncheckedCount }} 项效果未标记处理（可忽略——规则由你掌握）
-        </p>
 
         <!-- 回合后信息 -->
         <p v-if="lastMessage" class="mt-4 text-sm opacity-80 text-center italic">{{ lastMessage }}</p>
