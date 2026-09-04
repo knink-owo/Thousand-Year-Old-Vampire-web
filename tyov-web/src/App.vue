@@ -89,7 +89,7 @@ const showNav = computed(() => view.value !== 'home')
       <p>本工具为个人学习与游玩而作，全部游戏内容版权归原作者所有 · 侵删</p>
       <p class="pt-1">
         若喜欢这个工具，欢迎到
-        <a class="underline hover:text-red-300 transition-colors" href="https://github.com/knink-owo/tyov-vampire" target="_blank" rel="noopener">GitHub 仓库</a>
+        <a class="underline hover:text-red-300 transition-colors" href="https://github.com/knink-owo/Thousand-Year-Old-Vampire-web" target="_blank" rel="noopener">GitHub 仓库</a>
         留下一颗星 ⭐
       </p>
       <p class="opacity-60">你的旅程只保存在本机 · 可离线游玩</p>
