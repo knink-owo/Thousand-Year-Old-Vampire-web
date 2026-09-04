@@ -5,10 +5,13 @@ import { useGameStore } from '../stores/game'
 const store = useGameStore()
 const s = computed(() => store.state!)
 
+const emit = defineEmits<{ (e: 'navigate', to: 'home'): void }>()
+
 const diaryCount = computed(() => s.value.diaries.length)
 const memoryCount = computed(() => s.value.memories.length)
 const skillCount = computed(() => s.value.skills.filter(x => !x.lost).length)
 const deadChars = computed(() => s.value.characters.filter(x => x.dead))
+const artifactHeld = computed(() => s.value.resources.filter(r => r.artifact && !r.lost))
 
 function exportMd() {
   const md = store.exportDiaryMarkdown()
@@ -30,6 +33,14 @@ function exportMd() {
         {{ s.finishReason }}
       </p>
       <p class="mt-3 text-sm opacity-60">共经历 {{ s.moves }} 次提示触达。</p>
+    </div>
+
+    <!-- 神器可改写结局（提示10第2条目） -->
+    <div v-if="artifactHeld.length" class="card p-5 border-amber-700/60">
+      <p class="text-xs tracking-[0.3em] opacity-60 mb-2">◈ 神 器 之 力</p>
+      <p class="text-sm leading-relaxed opacity-85">
+        你仍持有{{ artifactHeld.map(r => `「${r.name}」`).join('、') }}。规则书（提示10）：达成结局时依然拥有它，你可以随意改写结局——让这段千年的句点属于你。
+      </p>
     </div>
 
     <!-- 数字回顾 -->
@@ -65,7 +76,7 @@ function exportMd() {
 
     <div class="flex justify-center gap-4 flex-wrap">
       <button class="btn btn-gold" @click="exportMd()">导出日记为 Markdown</button>
-      <button class="btn" @click="store.newGame(store.state?.name ?? '无名', store.state?.usesFastMode ?? false)">开始新的千年</button>
+      <button class="btn" @click="emit('navigate', 'home')">返回首页</button>
     </div>
   </div>
 </template>

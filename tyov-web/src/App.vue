@@ -7,9 +7,11 @@ import GameView from './views/GameView.vue'
 import FinishView from './views/FinishView.vue'
 import TutorialView from './views/TutorialView.vue'
 import HistoryView from './views/HistoryView.vue'
+import ReviewView from './views/ReviewView.vue'
 
 const store = useGameStore()
-const view = ref<'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'history'>('home')
+const view = ref<'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'history' | 'review'>('home')
+const reviewTarget = ref('') // 历史"回顾"目标：游戏的完整快照 id
 
 // 状态驱动收敛：建卡完成（state 出现）→ 游戏；游戏结束（finished）→ 终章
 // 初始总是停留在首页，让玩家自己选择（首页会展示"未竟之旅"）
@@ -25,12 +27,15 @@ watch(
   { deep: true },
 )
 
-function navigate(to: 'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'history') {
+function navigate(to: 'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'history' | 'review', recordId?: string) {
   if (to === 'create') {
     // 有未完存档：直接续玩；否则进入建卡
     view.value = store.state && !store.state.finished ? 'game' : 'create'
   } else if (to === 'game') {
     view.value = store.state && !store.state.finished ? 'game' : 'create'
+  } else if (to === 'review' && recordId) {
+    reviewTarget.value = recordId
+    view.value = 'review'
   } else {
     view.value = to
   }
@@ -59,10 +64,11 @@ const showNav = computed(() => view.value !== 'home')
     <main class="flex-1 w-full max-w-6xl mx-auto px-4 pb-16 box-border">
       <HomeView v-if="view === 'home'" @navigate="navigate" />
       <CreateView v-else-if="view === 'create'" />
-      <GameView v-else-if="view === 'game'" />
-      <FinishView v-else-if="view === 'finish'" />
+      <GameView v-else-if="view === 'game'" @navigate="navigate" />
+      <FinishView v-else-if="view === 'finish'" @navigate="navigate" />
       <TutorialView v-else-if="view === 'tutorial'" @navigate="navigate" />
       <HistoryView v-else-if="view === 'history'" @navigate="navigate" />
+      <ReviewView v-else-if="view === 'review'" :record-id="reviewTarget" @navigate="navigate" />
     </main>
 
     <footer class="pb-8 text-center text-xs opacity-60 px-4 space-y-1">

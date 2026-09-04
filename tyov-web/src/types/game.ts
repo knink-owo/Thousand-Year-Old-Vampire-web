@@ -44,6 +44,7 @@ export interface Resource {
   fixed: boolean;
   lost: boolean;
   isDiary: boolean;     // 是否为"日记"实体（≤4 记忆）
+  artifact?: boolean;   // 特殊神器（提示10第2条目）：失去资源时须首先失去它；结局时可改写结局
 }
 
 /** 角色：凡人（会老死）或不朽者；可被划掉（死亡） */
@@ -84,7 +85,9 @@ export type Effect =
   | { type: 'checkSkill2' }
   | { type: 'checkSkill3' }
   | { type: 'uncheckSkill' }
-  | { type: 'loseSkill' }
+  | { type: 'loseSkill' }              // 失去一项技能（已勾选或未勾选皆可）
+  | { type: 'loseCheckedSkill' }       // 失去一项已勾选的技能（提示62第2条目）
+  | { type: 'loseUncheckedSkill' }     // 失去一项未勾选的技能（提示66/70）
   | { type: 'changeSkill' }
   | { type: 'rewriteSkill' }
   | { type: 'gainResource'; name?: string }
@@ -118,6 +121,7 @@ export type Effect =
   | { type: 'returnGhost' }
   | { type: 'dieByAge' }
   | { type: 'changeAllegiance' }
+  | { type: 'dreamWorld' }             // 特殊：提示48第3条目——踏入梦境之地（清空特征、返回提示10）
   | { type: 'gameOver' }
   | { type: 'note'; text: string };    // 仅提示性效果
 
@@ -205,5 +209,7 @@ export interface GameState {
   started: boolean;
   finished: boolean;
   finishReason?: string;
+  finishedAt?: number;
+  dreamWorld?: boolean; // 提示48第3条目：已踏入梦境之地（无印记的吸血鬼，第二次抵达即醒来）
   moves: number;               // 已移动次数（≈ 已回答提示数）
 }

@@ -14,6 +14,7 @@ import {
 const SAVE_KEY = 'tyov:save:v1';
 const PACK_KEY = 'tyov:pack:v1';
 const HISTORY_KEY = 'tyov:history:v1';
+const FULL_KEY = 'tyov:history:full:v1'; // gameId → 全量状态快照（供"回顾"只读查看）
 const MAX_HISTORY = 20;
 
 let idCounter = 0;
@@ -132,7 +133,7 @@ export const useGameStore = defineStore('game', () => {
       resourceCount: s.resources.filter(r => !r.lost).length,
     };
   }
-  /** 登记/更新一条历史记录（新游戏登记、进度变化或结束更新） */
+  /** 登记/更新一条历史记录（新游戏登记、进度变化或结束更新），并保存全量快照供回顾 */
   function touchRecord() {
     const s = state.value;
     if (!s) return;
@@ -141,14 +142,53 @@ export const useGameStore = defineStore('game', () => {
     if (idx >= 0) records.value[idx] = rec;
     else records.value.unshift(rec);
     saveHistory();
+    fullSnapshots.value[s.id] = JSON.parse(JSON.stringify(s)) as GameState;
+    saveFullSnapshots();
   }
   function removeRecord(id: string) {
     records.value = records.value.filter(r => r.id !== id);
+    delete fullSnapshots.value[id];
     saveHistory();
+    saveFullSnapshots();
   }
   function clearRecords() {
     records.value = [];
+    fullSnapshots.value = {};
     saveHistory();
+    saveFullSnapshots();
+  }
+
+  // ---------- 全量快照（历史"回顾"用） ----------
+  const fullSnapshots = ref<Record<string, GameState>>(loadFullSnapshots());
+  function loadFullSnapshots(): Record<string, GameState> {
+    try {
+      const raw = localStorage.getItem(FULL_KEY);
+      if (raw) {
+        const map = JSON.parse(raw) as Record<string, GameState>;
+        if (map && typeof map === 'object') return map;
+      }
+    } catch { /* ignore */ }
+    return {};
+  }
+  /** 全量快照与历史摘要保持同步：只保留最近 MAX_HISTORY 条；容量超限时从最旧开始丢弃重试 */
+  function saveFullSnapshots() {
+    const keep = new Set(records.value.slice(0, MAX_HISTORY).map(r => r.id));
+    for (const id of Object.keys(fullSnapshots.value)) {
+      if (!keep.has(id)) delete fullSnapshots.value[id];
+    }
+    try {
+      localStorage.setItem(FULL_KEY, JSON.stringify(fullSnapshots.value));
+    } catch {
+      const ordered = [...records.value].sort((a, b) => a.createdAt - b.createdAt).map(r => r.id);
+      const drop = ordered.find(id => fullSnapshots.value[id]);
+      if (drop) {
+        delete fullSnapshots.value[drop];
+        saveFullSnapshots();
+      }
+    }
+  }
+  function getRecordSnapshot(id: string): GameState | null {
+    return fullSnapshots.value[id] ?? null;
   }
 
   // ---------- 回合流程 ----------
@@ -192,7 +232,8 @@ export const useGameStore = defineStore('game', () => {
 
     if (entryCausesGameOver(p, epIdx) || checkAlternativeIfNeeded(s, entry)) {
       s.finished = true;
-      s.finishReason = '你的故事到此为止。提示宣告了终结。';
+      s.finishReason = `你的故事到此为止——${entry.text.length > 50 ? entry.text.slice(0, 50) + '…' : entry.text}`;
+      s.finishedAt = Date.now();
       s.log.push(logText('system', '游戏结束。', p.number));
     } else {
       // 条目用尽则强制前进到下一提示（即便骰子移回）；否则按骰子移动
@@ -216,8 +257,9 @@ export const useGameStore = defineStore('game', () => {
       if (e.type === 'checkSkill' || e.type === 'checkSkill2' || e.type === 'checkSkill3') {
         if (checkAlternative(s, 'checkSkill').outcome === 'gameOver') return true;
       }
-      if (e.type === 'loseSkill') {
-        if (checkAlternative(s, 'loseSkill').outcome === 'gameOver') return true;
+      if (e.type === 'loseSkill' || e.type === 'loseCheckedSkill' || e.type === 'loseUncheckedSkill') {
+        const intent = e.type === 'loseCheckedSkill' ? 'loseCheckedSkill' : e.type === 'loseUncheckedSkill' ? 'loseUncheckedSkill' : 'loseSkill';
+        if (checkAlternative(s, intent).outcome === 'gameOver') return true;
       }
       if (e.type === 'loseResource' || e.type === 'loseResource2' || e.type === 'loseResource3' || e.type === 'loseAllFixedResources' || e.type === 'loseFixedResource') {
         if (checkAlternative(s, 'loseResource').outcome === 'gameOver') return true;
@@ -511,6 +553,15 @@ export const useGameStore = defineStore('game', () => {
     r.name = newName.trim();
     persist();
   }
+  /** 标记/取消标记神器（提示10第2条目：失去资源时须首先失去，结局时可改写） */
+  function toggleArtifact(id: string) {
+    const s = state.value!;
+    const r = s.resources.find(x => x.id === id);
+    if (!r || r.isDiary) return;
+    r.artifact = !r.artifact;
+    s.log.push(logText('resource', r.artifact ? `「${r.name}」被确认为神器——它关系着你的结局。` : `「${r.name}」不再被视为神器。`, s.currentPromptNumber));
+    persist();
+  }
 
   function addCharacter(name: string, description: string, immortal: boolean) {
     const s = state.value!;
@@ -524,6 +575,15 @@ export const useGameStore = defineStore('game', () => {
     if (!c || c.dead) return;
     c.dead = true;
     s.log.push(logText('character', `${c.name} 死了。`, s.currentPromptNumber));
+    persist();
+  }
+  /** 凡人在岁月中老去（规则书"角色"节：每隔四五个提示，一个凡人会因年老而去世） */
+  function ageCharacter(id: string) {
+    const s = state.value!;
+    const c = s.characters.find(x => x.id === id);
+    if (!c || c.dead || c.immortal) return;
+    c.dead = true;
+    s.log.push(logText('character', `岁月带走了 ${c.name}——他们已老去、死去，化为尘土。`, s.currentPromptNumber));
     persist();
   }
   /** 带回一个最近划掉的凡人角色（提示48第2条目） */
@@ -594,7 +654,25 @@ export const useGameStore = defineStore('game', () => {
     if (!s || s.finished) return;
     s.finished = true;
     s.finishReason = reason || '你选择在此终结自己的千年。';
+    s.finishedAt = Date.now();
     s.log.push(logText('system', '游戏结束。', s.currentPromptNumber));
+    persist();
+  }
+
+  /** 踏入梦境之地（提示48第3条目）：留下所有角色、印记与资源（除一把银剑），返回提示10，成为无印记的吸血鬼 */
+  function enterDreamWorld() {
+    const s = state.value!;
+    if (!s || s.dreamWorld) return;
+    s.dreamWorld = true;
+    // 亲手挑一把银剑带走，其余全数留下
+    const silver: Resource = { id: uid(), name: '一把银剑', fixed: false, lost: false, isDiary: false };
+    s.characters = [];
+    s.marks = [];
+    s.resources = [silver];
+    s.diaryResourceId = undefined;
+    for (const m of s.memories) m.inDiary = false; // 日记被留下，记忆回归（仍占槽）
+    s.currentPromptNumber = 10;
+    s.log.push(logText('system', '你在梦境中醒来——现实之地的所有牵绊都被抛下，唯余一把银剑。你成为无印记的吸血鬼，回到提示10。', 48));
     persist();
   }
 
@@ -611,8 +689,8 @@ export const useGameStore = defineStore('game', () => {
       return true;
     } catch { return false; }
   }
-  function exportDiaryMarkdown(): string {
-    const s = state.value;
+  function exportDiaryMarkdown(target?: GameState): string {
+    const s = target ?? state.value;
     if (!s) return '';
     const lines: string[] = [];
     lines.push(`# ${s.name} 的日记`);
@@ -652,16 +730,16 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     pack, state, currentPrompt, currentEntryIndex, currentEntryText, storageUsed,
-    records, removeRecord, clearRecords,
+    records, removeRecord, clearRecords, getRecordSnapshot,
     startGame, completeTurn, newGame,
     addExperience, forgetMemory, renameMemory, stabilizeMemory, restoreMemory,
     removeExperience, editExperience, randomLoseExperience, restoreExperience, changeMemorySlots,
     moveMemoryToDiary,
     addSkill, checkSkill, uncheckSkill, loseSkill, rewriteSkill, memoryToSkill,
-    addResource, loseResource, degradeResource, retrieveResource, convertFixedResource, swapResource, renameResource,
-    addCharacter, killCharacter, reviveCharacter, returnGhost, characterToResource, mortalToImmortal,
+    addResource, loseResource, degradeResource, retrieveResource, convertFixedResource, swapResource, renameResource, toggleArtifact,
+    addCharacter, killCharacter, ageCharacter, reviveCharacter, returnGhost, characterToResource, mortalToImmortal,
     addMark, removeMark, crippleMark,
-    endGame,
+    endGame, enterDreamWorld,
     exportGameJson, importGameJson, exportDiaryMarkdown, exportPackJson, importPackJson,
     persist,
   };

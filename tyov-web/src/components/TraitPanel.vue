@@ -35,7 +35,12 @@ const confirmDesc = computed(() => {
     }
     case 'loseResource': {
       const r = s.value.resources.find(x => x.id === p.id)
-      return `确定要失去资源「${r?.name ?? ''}」吗？它将从你的资源中划掉。`
+      const artifact = s.value.resources.find(x => x.artifact && !x.lost)
+      let text = `确定要失去资源「${r?.name ?? ''}」吗？它将从你的资源中划掉。`
+      if (artifact && artifact.id !== p.id) {
+        text += `\n\n⚠ 你还持有神器「${artifact.name}」——规则书（提示10）：与不朽者遭遇失去资源时，必须首先失去这件物品。`
+      }
+      return text
     }
     case 'kill': {
       const c = s.value.characters.find(x => x.id === p.id)
@@ -359,9 +364,11 @@ const tabs = computed(() => [
           <span class="flex-1 text-sm" :class="{ struck: r.lost }">
             {{ r.name }}
             <span v-if="r.isDiary" class="text-xs text-cyan-300/80 ml-1">日记（{{ s.memories.filter(m => m.inDiary).length }}/4 记忆）</span>
+            <span v-else-if="r.artifact" class="text-xs text-amber-300/90 ml-1">◈ 神器</span>
             <span v-else-if="r.fixed" class="text-xs text-amber-300/70 ml-1">固定</span>
           </span>
           <div class="flex gap-1.5 shrink-0 flex-wrap justify-end">
+            <button v-if="!r.lost && !r.isDiary" class="text-xs px-2 py-0.5 rounded border" :class="r.artifact ? 'border-amber-400/70 text-amber-300' : 'border-amber-900/40 text-amber-200/60'" title="神器（提示10第2条目）：失去资源时必须首先失去它；达成结局仍持有时可改写结局" @click="store.toggleArtifact(r.id)">{{ r.artifact ? '◈ 神器' : '标记神器' }}</button>
             <button v-if="r.isDiary && !r.lost" class="text-xs px-2 py-0.5 rounded border border-amber-700/40 text-amber-200/70" title="规则书：请给日记一个简短的描述" @click="renameDiary(r)">改名</button>
             <button v-if="!r.lost && !r.isDiary && r.fixed" class="text-xs px-2 py-0.5 rounded border border-cyan-900/60 text-cyan-200/80" title="固定资源转为便携现金/财宝（提示46第1条目）" @click="convertRes(r)">转便携</button>
             <button v-if="!r.lost && !r.isDiary && !r.fixed" class="text-xs px-2 py-0.5 rounded border border-purple-900/60 text-purple-300/80" title="用这件资源换取一项新资源（提示65第1条目）" @click="swapRes(r)">交换</button>

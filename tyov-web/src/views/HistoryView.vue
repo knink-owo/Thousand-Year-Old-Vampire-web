@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useGameStore } from '../stores/game'
 
 const store = useGameStore()
-const emit = defineEmits<{ (e: 'navigate', to: 'home' | 'create'): void }>()
+const emit = defineEmits<{ (e: 'navigate', to: 'home' | 'create' | 'review', recordId?: string): void }>()
 
 const records = computed(() => [...store.records].sort((a, b) => b.createdAt - a.createdAt))
 
@@ -22,6 +22,10 @@ function stage(rec: { finished: boolean; moves: number }): string {
 function canContinue(id: string): boolean {
   // 只能继续"当前存档"对应的未完结旅程
   return !!store.state && store.state.id === id && !store.state.finished
+}
+
+function canReview(id: string): boolean {
+  return store.getRecordSnapshot(id) !== null
 }
 </script>
 
@@ -62,8 +66,17 @@ function canContinue(id: string): boolean {
             记忆 {{ r.memoryCount }} · 技能 {{ r.skillCount }} · 资源 {{ r.resourceCount }}
           </p>
         </div>
-        <div class="shrink-0 flex flex-col gap-2">
+        <div class="shrink-0 flex flex-wrap gap-2 justify-end">
           <button v-if="canContinue(r.id)" class="btn btn-gold text-sm" @click="emit('navigate', 'create')">继续</button>
+          <button
+            class="btn text-sm"
+            :class="{ 'opacity-40 cursor-not-allowed': !canReview(r.id) }"
+            :disabled="!canReview(r.id)"
+            :title="canReview(r.id) ? '以只读方式回顾这段旅程的完整内容' : '该段往事的详细记录未留存于本机'"
+            @click="emit('navigate', 'review', r.id)"
+          >
+            回顾
+          </button>
           <button class="btn btn-ghost text-sm" @click="store.removeRecord(r.id)">遗忘</button>
         </div>
       </div>
@@ -71,7 +84,7 @@ function canContinue(id: string): boolean {
       <div class="flex justify-end">
         <button class="btn btn-ghost text-xs opacity-70" @click="store.clearRecords()">抹去全部历史</button>
       </div>
-      <p class="text-xs opacity-40 text-center">历史仅记录一段段摘要 · 详细存档保存在本机</p>
+      <p class="text-xs opacity-40 text-center">每段旅程的完整记录都保存在本机 · 「回顾」以只读方式展开逝去的千年</p>
     </div>
   </div>
 </template>

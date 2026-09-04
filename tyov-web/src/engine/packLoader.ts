@@ -46,6 +46,8 @@ function normalizeEffect(e: RawEffect): Effect {
     checkCountSkill: 'checkSkill',
     uncheckSkill: 'uncheckSkill',
     loseSkill: 'loseSkill',
+    loseCheckedSkill: 'loseCheckedSkill',
+    loseUncheckedSkill: 'loseUncheckedSkill',
     changeSkill: 'changeSkill',
     rewriteSkill: 'rewriteSkill',
     gainResource: 'gainResource',
@@ -80,6 +82,7 @@ function normalizeEffect(e: RawEffect): Effect {
     returnGhost: 'returnGhost',
     dieByAge: 'dieByAge',
     changeAllegiance: 'changeAllegiance',
+    dreamWorld: 'dreamWorld',
     gameOver: 'gameOver',
     note: 'note',
   };

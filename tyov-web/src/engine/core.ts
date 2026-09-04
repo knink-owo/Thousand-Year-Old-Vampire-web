@@ -98,7 +98,7 @@ export function hasLosableResource(state: GameState): boolean {
  */
 export function checkAlternative(
   state: GameState,
-  intent: 'checkSkill' | 'loseResource' | 'loseSkill',
+  intent: 'checkSkill' | 'loseResource' | 'loseSkill' | 'loseCheckedSkill' | 'loseUncheckedSkill',
 ): { outcome: 'ok' | 'alternative' | 'gameOver'; reason?: string } {
   if (intent === 'checkSkill') {
     if (hasCheckableSkill(state)) return { outcome: 'ok' };
@@ -110,10 +110,42 @@ export function checkAlternative(
     if (hasLosableResource(state)) return { outcome: 'alternative', reason: '无技能可失去，改为失去一项资源' };
     return { outcome: 'gameOver', reason: '必须失去技能或资源，但你两者都没有——游戏结束' };
   }
+  if (intent === 'loseCheckedSkill') {
+    if (state.skills.some(s => s.checked && !s.lost)) return { outcome: 'ok' };
+    if (hasLosableResource(state)) return { outcome: 'alternative', reason: '没有已勾选的技能可失去，改为失去一项资源' };
+    return { outcome: 'gameOver', reason: '没有已勾选的技能，也没有资源可失去——游戏结束' };
+  }
+  if (intent === 'loseUncheckedSkill') {
+    if (state.skills.some(s => !s.checked && !s.lost)) return { outcome: 'ok' };
+    if (hasLosableResource(state)) return { outcome: 'alternative', reason: '没有未勾选的技能可失去，改为失去一项资源' };
+    return { outcome: 'gameOver', reason: '没有未勾选的技能，也没有资源可失去——游戏结束' };
+  }
   // loseResource
   if (hasLosableResource(state)) return { outcome: 'ok' };
   if (hasCheckableSkill(state)) return { outcome: 'alternative', reason: '无资源可失去，改为勾选一项技能' };
   return { outcome: 'gameOver', reason: '必须失去资源或勾选技能，但你两者都没有——游戏结束' };
+}
+
+/** 供替代规则检查的效果类型意图 */
+export function alternativeIntent(effectType: string): 'checkSkill' | 'loseResource' | 'loseSkill' | 'loseCheckedSkill' | 'loseUncheckedSkill' | null {
+  switch (effectType) {
+    case 'checkSkill': case 'checkSkill2': case 'checkSkill3': return 'checkSkill';
+    case 'loseResource': case 'loseResource2': case 'loseResource3':
+    case 'loseAllFixedResources': case 'loseFixedResource': return 'loseResource';
+    case 'loseSkill': return 'loseSkill';
+    case 'loseCheckedSkill': return 'loseCheckedSkill';
+    case 'loseUncheckedSkill': return 'loseUncheckedSkill';
+    default: return null;
+  }
+}
+
+/** UI 用：某个效果当前是否需要替代执行（供回合效果清单显示建议） */
+export function alternativeSuggestion(state: GameState, effectType: string): string | null {
+  const intent = alternativeIntent(effectType);
+  if (!intent) return null;
+  const r = checkAlternative(state, intent);
+  if (r.outcome === 'ok') return null;
+  return r.reason ?? '';
 }
 
 /**

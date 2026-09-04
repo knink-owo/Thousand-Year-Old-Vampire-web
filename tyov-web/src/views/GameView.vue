@@ -3,11 +3,14 @@ import { ref, computed, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import PromptCard from '../components/PromptCard.vue'
 import TraitPanel from '../components/TraitPanel.vue'
-import { placeExperienceDecision } from '../engine/core'
+import { placeExperienceDecision, alternativeSuggestion } from '../engine/core'
+import { effectText } from '../engine/effectLabels'
 import type { Memory } from '../types/game'
 
 const store = useGameStore()
 const s = computed(() => store.state!)
+
+const emit = defineEmits<{ (e: 'navigate', to: 'home'): void }>()
 
 const experienceText = ref('')
 const diaryText = ref('')
@@ -15,6 +18,57 @@ const bypassExperience = ref(false)
 
 const rollResult = ref<{ d10: number; d6: number; delta: number; to: number } | null>(null)
 const lastMessage = ref('')
+
+// ---- 效果执行清单（规则书：几乎每次收到提示，某个特征都会被修改）----
+const effectChecked = ref<Record<number, boolean>>({})
+watch(
+  () => [store.state?.currentPromptNumber, store.currentEntryIndex],
+  () => {
+    effectChecked.value = {}
+    showAging.value = false
+  },
+)
+const entryEffects = computed(() => store.currentPrompt?.entries[store.currentEntryIndex - 1]?.effects ?? [])
+const checkableEffects = computed(() => entryEffects.value.map((e, i) => ({ e, i })).filter(x => x.e.type !== 'note'))
+const uncheckedCount = computed(() => checkableEffects.value.filter(x => !effectChecked.value[x.i]).length)
+const effectsDone = computed(() => checkableEffects.value.length > 0 && uncheckedCount.value === 0)
+const effectSuggestions = computed(() =>
+  entryEffects.value
+    .map(e => alternativeSuggestion(s.value, e.type))
+    .filter((x): x is string => !!x),
+)
+function checkAllEffects() {
+  for (const { i } of checkableEffects.value) effectChecked.value[i] = true
+}
+
+// ---- 梦境之地（提示48第3条目）----
+const dreamWorldEntry = computed(() => entryEffects.value.some(e => e.type === 'dreamWorld'))
+function enterDream() {
+  if (window.confirm('确定踏入梦境之地吗？所有角色、印记与资源将被留下（唯保留一把银剑），并回到提示 10，成为无印记的吸血鬼。')) {
+    store.enterDreamWorld()
+  }
+}
+function takeDreamBook() {
+  if (!s.value.resources.some(r => r.name.includes('手写书'))) {
+    store.addResource('一本奇幻梦境的手写书')
+  }
+}
+
+// ---- 岁月流逝（规则书"角色"节：每隔四五个提示，一位凡人会因年老而去世）----
+const showAging = ref(false)
+const livingMortals = computed(() => s.value.characters.filter(c => !c.dead && !c.immortal))
+watch(
+  () => s.value.moves,
+  (moves, prev) => {
+    if (typeof prev === 'number' && moves > 0 && moves % 4 === 0 && showAging.value === false) {
+      showAging.value = livingMortals.value.length > 0
+    }
+  },
+)
+function ageIt(id: string) {
+  store.ageCharacter(id)
+  if (livingMortals.value.length === 0) showAging.value = false
+}
 
 const showDiaryEditor = computed(() => {
   return !s.value.usesFastMode && !s.value.finished
@@ -188,6 +242,67 @@ function completeTurn() {
       <!-- 提示卡 -->
       <PromptCard :entry-index="store.currentEntryIndex" />
 
+      <!-- 岁月流逝：凡人会老去（规则书"角色"节） -->
+      <div v-if="showAging && livingMortals.length > 0 && !s.finished" class="card p-5 border-amber-900/40">
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-2">岁 月 流 逝</p>
+        <p class="text-sm opacity-85 leading-relaxed mb-3">
+          数个春秋在指尖流逝。你认识的一位凡人正在衰老——每隔四五个提示，便有一位凡人会因年老而去世。让哪段生命落幕，或让岁月暂缓？
+        </p>
+        <div class="space-y-2">
+          <div v-for="c in livingMortals" :key="c.id" class="flex items-center gap-3 text-sm">
+            <span class="flex-1 truncate">{{ c.name }}</span>
+            <span class="text-xs opacity-50 shrink-0">{{ c.description || '凡人' }}</span>
+            <button class="btn btn-ghost text-xs shrink-0" @click="ageIt(c.id)">因年老而去</button>
+          </div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-ghost text-xs opacity-60" @click="showAging = false">岁月暂缓（忽略）</button>
+        </div>
+      </div>
+
+      <!-- 梦境之地（提示48第3条目） -->
+      <div v-if="dreamWorldEntry && !s.finished" class="card p-5 border-purple-900/60">
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-2">梦 境 之 地</p>
+        <template v-if="!s.dreamWorld">
+          <p class="text-sm opacity-85 leading-relaxed mb-3">
+            你可以抛弃现实，踏入梦境之地——留下所有角色、印记与资源（除一把银剑），回到提示 10，成为无印记的吸血鬼。
+            <span class="text-purple-300/80">若日后再度抵达此提示，你将醒来，永远无法返回。</span>
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <button class="btn btn-gold text-sm" @click="enterDream">🌙 踏入梦境之地</button>
+            <button class="btn btn-ghost text-sm" @click="takeDreamBook">留在现实 · 获得《一本奇幻梦境的手写书》</button>
+          </div>
+        </template>
+        <template v-else>
+          <p class="text-sm opacity-85">你再次抵达此处——随即醒来，再也无法返回梦境。</p>
+        </template>
+      </div>
+
+      <!-- 效果执行清单 -->
+      <div v-if="entryEffects.length > 0 && !s.finished" class="card p-5">
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">▸ 本提示的机制效果 · 处理清单</p>
+        <ul class="space-y-2 text-sm">
+          <li v-for="({ e, i }) in checkableEffects" :key="i" class="flex items-start gap-2">
+            <input type="checkbox" class="mt-1 shrink-0" v-model="effectChecked[i]" />
+            <span class="flex-1" :class="{ 'opacity-40': effectChecked[i] }">{{ effectText(e) }}</span>
+          </li>
+          <li v-for="(e, i) in entryEffects.filter(x => x.type === 'note')" :key="'n' + i" class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 opacity-60">📜</span>
+            <span class="flex-1 opacity-70 italic">{{ effectText(e) }}</span>
+          </li>
+        </ul>
+        <div v-if="effectSuggestions.length" class="mt-2 space-y-1">
+          <p v-for="sg in effectSuggestions" :key="sg" class="text-xs" :class="sg.includes('游戏结束') ? 'text-red-300' : 'text-amber-200/80'">
+            ⚠ {{ sg }}
+          </p>
+        </div>
+        <div class="mt-3 flex items-center justify-between gap-3 flex-wrap">
+          <button class="btn btn-ghost text-xs" @click="checkAllEffects">全部已处理</button>
+          <span v-if="uncheckedCount > 0" class="text-xs opacity-60">还有 {{ uncheckedCount }} 项未标记 —— 规则由你掌握，可忽略</span>
+          <span v-else class="text-xs text-emerald-300/80">本提示效果已全部处理 ✓</span>
+        </div>
+      </div>
+
       <!-- 掷骰结果 -->
       <div v-if="rollResult" class="card p-5 text-center">
         <p class="text-xs tracking-[0.3em] opacity-50 mb-3">骰 子 之 判</p>
@@ -271,6 +386,9 @@ function completeTurn() {
         <button class="btn btn-gold w-full" :disabled="!canComplete" @click="completeTurn">
           完成这一回合，掷出命运之骰
         </button>
+        <p v-if="checkableEffects.length > 0 && !effectsDone" class="mt-2 text-xs opacity-60 text-center">
+          本提示尚有 {{ uncheckedCount }} 项效果未标记处理（可忽略——规则由你掌握）
+        </p>
 
         <!-- 回合后信息 -->
         <p v-if="lastMessage" class="mt-4 text-sm opacity-80 text-center italic">{{ lastMessage }}</p>
@@ -280,7 +398,7 @@ function completeTurn() {
       <div v-else class="card p-6 text-center border-red-900">
         <h3 class="title-serif text-2xl blood-text m-0 mb-4">故事终结</h3>
         <p class="opacity-80">{{ s.finishReason }}</p>
-        <button class="btn mt-6" @click="store.newGame(store.state?.name ?? '无名', store.state?.usesFastMode ?? false)">开始新的千年</button>
+        <button class="btn mt-6" @click="emit('navigate', 'home')">返回首页</button>
       </div>
     </div>
 
