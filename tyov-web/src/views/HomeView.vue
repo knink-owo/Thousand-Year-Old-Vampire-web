@@ -54,11 +54,5 @@ function continueJourney() {
         <span v-if="totalTales" class="ml-2 text-xs opacity-60">（{{ totalTales }} 段往事）</span>
       </button>
     </div>
-
-    <!-- 底部说明 -->
-    <div class="mt-12 text-center text-xs opacity-40 space-y-1">
-      <p>本工具改编自《Thousand Year Old Vampire》（Tim Hutchings）</p>
-      <p>你的旅程只保存在这台设备的浏览器中 · 可离线游玩</p>
-    </div>
   </div>
 </template>

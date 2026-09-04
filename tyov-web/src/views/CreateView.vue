@@ -5,7 +5,7 @@ import { useGameStore } from '../stores/game'
 const store = useGameStore()
 const hasSave = computed(() => !!store.state && !store.state.finished)
 
-// ---- 建卡表单 ----
+// ---- 建卡表单（依规则书"创建吸血鬼"一节：1 概述记忆 + ≥3 凡人 + 3 技能 + 3 资源 + 3 经历 + 1 不朽者 + 1 印记/经历）----
 const name = ref('')
 const origin = ref('')
 const fastMode = ref(false)
@@ -13,17 +13,40 @@ const fastMode = ref(false)
 interface NamedItem { name: string; desc?: string }
 interface TextItem { text: string }
 
-const mortals = ref<NamedItem[]>([{ name: '', desc: '' }])
+const mortals = ref<NamedItem[]>([{ name: '', desc: '' }, { name: '', desc: '' }, { name: '', desc: '' }])
 const immortalMaker = ref({ name: '', desc: '' })
-const skills = ref<NamedItem[]>([{ name: '' }])
-const resources = ref<NamedItem[]>([{ name: '' }])
-const memories = ref<TextItem[]>([{ text: '' }])
-const mark = ref({ name: '', desc: '' })
+const skills = ref<NamedItem[]>([{ name: '' }, { name: '' }, { name: '' }])
+const resources = ref<NamedItem[]>([{ name: '' }, { name: '' }, { name: '' }])
+// 下标 0 为占位（模板 slice(1) 跳过），后 3 项为规则书要求的三项经历
+const memories = ref<TextItem[]>([{ text: '' }, { text: '' }, { text: '' }, { text: '' }])
+const mark = ref({ name: '', desc: '', origin: '' })
 
-const canStart = computed(() => name.value.trim().length > 0 && origin.value.trim().length > 0)
+// 每个输入框独立示例（不重复堆在同一句里）
+const mortalExamples = ['例如：贡德尔，维京人', '例如：劳伦斯·霍尔穆勒，男爵的后裔', '例如：米内尔家的女儿，出色的决斗者']
+const skillExamples = ['例如：击剑', '例如：骑术', '例如：宫廷礼节']
+const resourceExamples = ['例如：长船博克苏登', '例如：祖传宝剑', '例如：一块耕地']
+const memoryExamples = [
+  '例如：贡德尔带我第一次乘坐长船博克苏登出海；当我们首次航行到看不见陆地时，他的触碰让我感到安心。',
+  '例如：我在荒野中醒来；风带来了故土的气息。',
+  '例如：我向领主复仇，火焰吞没了他的庄园。',
+]
 
-function addItem<T>(list: T[], item: T) {
-  list.push(item)
+// 全部栏位填写完毕后才能开始（规则书：凡人三人、技能三项、资源三项、经历三段、不朽者、印记与经历）
+const canStart = computed(() => {
+  if (!name.value.trim() || !origin.value.trim()) return false
+  if (!mortals.value.every(m => m.name.trim())) return false
+  if (!skills.value.every(sk => sk.name.trim())) return false
+  if (!resources.value.every(r => r.name.trim())) return false
+  if (!memories.value.slice(1).every(m => m.text.trim())) return false
+  if (!immortalMaker.value.name.trim()) return false
+  if (!mark.value.name.trim() || !mark.value.origin.trim()) return false
+  return true
+})
+
+/** 清空某项内容（不删除输入框本身） */
+function clearItem<T extends { name?: string; text?: string }>(item: T) {
+  if (item.name !== undefined) item.name = ''
+  if (item.text !== undefined) item.text = ''
 }
 
 function resetAll() {
@@ -107,40 +130,39 @@ function exportPack() {
 
 function buildAndStart() {
   if (!canStart.value) return
-  // 记忆槽只有 5 个：第一段记忆占一个，额外经历最多 4 段（规则书建议 3 段 + 成为吸血鬼的经历）
+  // 记忆槽共有 5 个：1 概述 + 3 经历 + 1 印记经历（填写时各占一段）
   const extraCount = memories.value.slice(1).filter(m => m.text.trim()).length
-  if (extraCount > 4) {
-    window.alert(`记忆槽共有 5 个，第一段记忆已占用一个——额外经历最多 4 段（规则书建议 3 段，另加一段成为吸血鬼的经历）。你目前填写了 ${extraCount} 段，请删减后再开始。`)
+  const markOriginCount = mark.value.origin.trim() ? 1 : 0
+  if (1 + extraCount + markOriginCount > 5) {
+    window.alert(`记忆槽共有 5 个：第一段概述记忆占 1 个，三项经历最多占 3 个，印记经历占 1 个。你目前填写了 ${extraCount + markOriginCount} 段额外经历，请删减后再开始。`)
     return
   }
   store.newGame(name.value.trim(), fastMode.value)
 
-  const s = store.state
-  void s
-  // 初始记忆（生平概述）→ 第一段记忆
+  // 1. 第一段记忆：概况吸血鬼过去的经历（规则书）——放入第一个记忆
   store.addExperience(null, origin.value.trim(), 0, 0)
-  // 三个（或更多）凡人
+  // 2. 至少三个凡人
   for (const m of mortals.value) {
     if (m.name.trim()) store.addCharacter(m.name.trim(), (m.desc ?? '').trim(), false)
   }
-  // 不朽者（赐予永生的存在）
-  if (immortalMaker.value.name.trim()) {
-    store.addCharacter(immortalMaker.value.name.trim(), `${immortalMaker.value.desc.trim()}；${mark.value.desc.trim()}`.trim().replace(/(^；|；$)/, ''), true)
-  }
-  // 技能
+  // 3. 三项技能与三项资源（凡人之时的所有）
   for (const sk of skills.value) {
     if (sk.name.trim()) store.addSkill(sk.name.trim())
   }
-  // 资源
   for (const r of resources.value) {
     if (r.name.trim()) store.addResource(r.name.trim())
   }
-  // 印记
-  if (mark.value.name.trim()) store.addMark(mark.value.name.trim(), mark.value.desc.trim())
-  // 其余经历（放入新的记忆）
+  // 4. 三项经历——每项分别录入一段记忆
   for (const m of memories.value.slice(1)) {
     if (m.text.trim()) store.addExperience(null, m.text.trim(), 0, 0)
   }
+  // 5. 不朽者：赋予（或诅咒）你永生的存在
+  if (immortalMaker.value.name.trim()) {
+    store.addCharacter(immortalMaker.value.name.trim(), immortalMaker.value.desc.trim(), true)
+  }
+  // 6. 印记 + 成为吸血鬼的经历
+  if (mark.value.name.trim()) store.addMark(mark.value.name.trim(), mark.value.desc.trim())
+  if (mark.value.origin.trim()) store.addExperience(null, mark.value.origin.trim(), 0, 0)
 }
 </script>
 
@@ -194,26 +216,27 @@ function buildAndStart() {
                 <input type="radio" v-model="fastMode" :value="true" /> 快速游戏（记忆区内作答）
               </label>
             </div>
+            <p class="text-xs opacity-70 mt-2 leading-relaxed">
+              快速模式适合速览一段人生，日志模式适合认真写一本“吸血鬼传记”。
+            </p>
           </div>
 
           <!-- 技能 -->
           <div>
             <label class="block text-sm mb-2 opacity-80">技能（三项，符合其生活境遇）</label>
             <div v-for="(sk, i) in skills" :key="i" class="flex gap-2 mb-2">
-              <input v-model="sk.name" class="input" placeholder="例如：击剑、骑术、宫廷礼节" />
-              <button v-if="skills.length > 1" class="btn btn-ghost btn-parchment px-3" @click="skills.splice(i, 1)">×</button>
+              <input v-model="sk.name" class="input" :placeholder="skillExamples[i]" />
+              <button class="btn btn-ghost btn-parchment px-3" title="清空此项" @click="clearItem(sk)">×</button>
             </div>
-            <button class="btn btn-ghost btn-parchment text-sm mt-1" @click="addItem(skills, { name: '' })">＋ 加一项</button>
           </div>
 
           <!-- 资源 -->
           <div>
             <label class="block text-sm mb-2 opacity-80">资源（三项，凡人之时的所有）</label>
             <div v-for="(r, i) in resources" :key="i" class="flex gap-2 mb-2">
-              <input v-model="r.name" class="input" placeholder="例如：长船博克苏登、祖传宝剑、一块耕地" />
-              <button v-if="resources.length > 1" class="btn btn-ghost btn-parchment px-3" @click="resources.splice(i, 1)">×</button>
+              <input v-model="r.name" class="input" :placeholder="resourceExamples[i]" />
+              <button class="btn btn-ghost btn-parchment px-3" title="清空此项" @click="clearItem(r)">×</button>
             </div>
-            <button class="btn btn-ghost btn-parchment text-sm mt-1" @click="addItem(resources, { name: '' })">＋ 加一项</button>
           </div>
         </div>
 
@@ -223,10 +246,9 @@ function buildAndStart() {
           <div>
             <label class="block text-sm mb-2 opacity-80">凡人（至少三人——亲戚、朋友、爱人、敌人、导师……）</label>
             <div v-for="(m, i) in mortals" :key="i" class="flex gap-2 mb-2">
-              <input v-model="m.name" class="input flex-1" placeholder="姓名 · 一句话描述" />
-              <button v-if="mortals.length > 1" class="btn btn-ghost btn-parchment px-3" @click="mortals.splice(i, 1)">×</button>
+              <input v-model="m.name" class="input flex-1" :placeholder="mortalExamples[i]" />
+              <button class="btn btn-ghost btn-parchment px-3" title="清空此项" @click="clearItem(m)">×</button>
             </div>
-            <button class="btn btn-ghost btn-parchment text-sm mt-1" @click="addItem(mortals, { name: '', desc: '' })">＋ 加一位凡人</button>
           </div>
 
           <!-- 不朽者 -->
@@ -237,18 +259,19 @@ function buildAndStart() {
 
           <!-- 印记 -->
           <div>
-            <label class="block text-sm mb-2 opacity-80">印记 —— 你成为黑夜生物的标志，及如何得来的经历</label>
+            <label class="block text-sm mb-2 opacity-80">印记 —— 你成为黑夜生物的可辨标志</label>
             <input v-model="mark.name" class="input mb-2" placeholder="例如：我的脖子永久破裂，我戴上紧围巾并缓慢行走以保持尊严" />
+            <textarea v-model="mark.origin" class="input" placeholder="成为吸血鬼的经历（写入记忆）——例如：我在修道院的屋顶上与阴森的巴伦·霍尔穆勒决斗；他几乎砍掉我的头，但我没有死。" />
           </div>
 
-          <!-- 更多经历 -->
+          <!-- 三项经历（规则书：每项写入一段独立记忆） -->
           <div>
-            <label class="block text-sm mb-2 opacity-80">更多经历（可选）—— 每段写入一段记忆</label>
+            <label class="block text-sm mb-2 opacity-80">三项经历 —— 每项分别录入一段记忆</label>
             <div v-for="(m, i) in memories.slice(1)" :key="i" class="flex gap-2 mb-2">
-              <textarea v-model="m.text" class="input" :placeholder="`经历 ${i + 2}：贡德尔带我第一次乘坐长船博克苏登出海；当我们首次航行到看不见陆地时，他的触碰让我感到安心。`"></textarea>
-              <button v-if="memories.length > 1" class="btn btn-ghost btn-parchment px-3 self-start" @click="memories.splice(i + 1, 1)">×</button>
+              <textarea v-model="m.text" class="input" :placeholder="memoryExamples[i]"></textarea>
+              <button class="btn btn-ghost btn-parchment px-3 self-start" title="清空此项" @click="clearItem(m)">×</button>
             </div>
-            <button class="btn btn-ghost btn-parchment text-sm mt-1" @click="addItem(memories, { text: '' })">＋ 加一段经历</button>
+            <p class="text-xs opacity-70 mt-2">记忆槽共 5 个：第一段概述占 1 个，三项经历与印记经历占其余 4 个。</p>
           </div>
         </div>
       </div>
@@ -258,7 +281,7 @@ function buildAndStart() {
         <button class="btn btn-gold btn-parchment text-lg px-10" :disabled="!canStart" @click="buildAndStart">
           🩸 成为黑夜的生物
         </button>
-        <p v-if="!canStart" class="text-sm opacity-60 mt-3">请先写下姓名与第一段记忆</p>
+        <p v-if="!canStart" class="text-sm opacity-60 mt-3">请填完上方所有栏位后，才能开始这段千年</p>
       </div>
     </div>
 

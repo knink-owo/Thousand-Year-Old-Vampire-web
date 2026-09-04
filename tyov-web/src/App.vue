@@ -65,8 +65,19 @@ const showNav = computed(() => view.value !== 'home')
       <HistoryView v-else-if="view === 'history'" @navigate="navigate" />
     </main>
 
-    <footer class="pb-8 text-center text-xs opacity-40 px-4">
-      改编自《Thousand Year Old Vampire》· 你的旅程只保存在本机 · 可离线游玩
+    <footer class="pb-8 text-center text-xs opacity-60 px-4 space-y-1">
+      <p>
+        改编自 <strong>《Thousand Year Old Vampire》</strong>（作者：Tim Hutchings）
+        · <a class="underline hover:text-red-300 transition-colors" href="https://timhutchings.itch.io/tyov" target="_blank" rel="noopener">官方页面（itch.io）</a>
+        · <a class="underline hover:text-red-300 transition-colors" href="https://www.thousandyearoldvampire.com/" target="_blank" rel="noopener">thousandyearoldvampire.com</a>
+      </p>
+      <p>本工具为个人学习与游玩而作，全部游戏内容版权归原作者所有 · 侵删</p>
+      <p class="pt-1">
+        若喜欢这个工具，欢迎到
+        <a class="underline hover:text-red-300 transition-colors" href="https://github.com/knink-owo/tyov-vampire" target="_blank" rel="noopener">GitHub 仓库</a>
+        留下一颗星 ⭐
+      </p>
+      <p class="opacity-60">你的旅程只保存在本机 · 可离线游玩</p>
     </footer>
   </div>
 </template>
