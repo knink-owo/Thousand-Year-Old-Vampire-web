@@ -40,7 +40,7 @@ const entry = computed(() => {
           <span>{{ effectText(e) }}</span>
         </li>
       </ul>
-      <p class="text-xs opacity-40 mt-2">在下方执行这些效果（也可忽略由你决定）。规则：无法勾选技能时改为失去资源；无法失去资源时改为勾选技能；两者皆无则游戏结束。</p>
+      <p class="text-xs opacity-40 mt-2">在右侧执行这些效果。规则：无可勾选技能时改为失去资源；无可失去资源时改为勾选技能；两者皆无则游戏结束。</p>
     </div>
   </div>
 </template>
