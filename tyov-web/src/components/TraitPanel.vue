@@ -4,7 +4,8 @@ import { useGameStore } from '../stores/game'
 
 const store = useGameStore()
 const s = computed(() => store.state!)
-const tab = ref<'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary'>('memory')
+const props = defineProps<{ initialTab?: 'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary' }>()
+const tab = ref<'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary'>(props.initialTab ?? 'memory')
 
 // ---- 二次确认（破坏性操作） ----
 type ConfirmKind = 'forget' | 'loseSkill' | 'loseResource' | 'kill' | 'removeMark'
@@ -252,6 +253,12 @@ const tabs = computed(() => [
   { key: 'mark', label: `印记 (${s.value.marks.length})` },
   { key: 'diary', label: `日志 (${s.value.diaries.length})` },
 ] as const)
+
+// 供外部（效果执行引导）切换 tab
+function setTab(t: string) {
+  if (tabs.value.some(x => x.key === t)) tab.value = t as typeof tab.value
+}
+defineExpose({ setTab })
 </script>
 
 <template>

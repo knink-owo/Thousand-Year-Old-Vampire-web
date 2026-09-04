@@ -17,6 +17,55 @@ const HISTORY_KEY = 'tyov:history:v1';
 const FULL_KEY = 'tyov:history:full:v1'; // gameId → 全量状态快照（供"回顾"只读查看）
 const MAX_HISTORY = 20;
 
+// ---------- 存储安全层 ----------
+// 隐私模式（Safari/部分无痕）、禁用站点数据、localStorage 配额满等场景下，
+// 读取/写入会抛异常。所有持久化都经由本层，失败不中断游戏，仅记录状态供 UI 提示。
+let storageAvailable = true; // 启动时探测一次；运行时写失败会置 false
+try {
+  const probe = '__tyov_probe__';
+  localStorage.setItem(probe, '1');
+  localStorage.removeItem(probe);
+} catch {
+  storageAvailable = false;
+}
+
+/** 安全读取：不可用或异常时返回 null */
+function safeGet(key: string): string | null {
+  if (!storageAvailable) return null;
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    storageAvailable = false;
+    return null;
+  }
+}
+
+/** 安全写入：不可用或异常时标记 storageAvailable=false，返回是否成功 */
+function safeSet(key: string, value: string): boolean {
+  if (!storageAvailable) return false;
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    storageAvailable = false;
+    return false;
+  }
+}
+
+/** 安全删除 */
+function safeRemove(key: string): void {
+  if (!storageAvailable) return;
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    storageAvailable = false;
+  }
+}
+
+export function isStorageAvailable(): boolean {
+  return storageAvailable;
+}
+
 let idCounter = 0;
 function uid(): string {
   idCounter += 1;
@@ -70,16 +119,36 @@ export const useGameStore = defineStore('game', () => {
   const storageUsed = computed(() => usedMemorySlots(state.value!));
 
   // ---------- 存档 ----------
+  // 存储不可用/异常时的警告（UI 顶部横幅读取）
+  const storageWarning = ref<string>('')
+
+  /** 清除本工具的全部本地数据（存档/历史/快照/提示包）——供"抹去一切记录"使用 */
+  function clearLocalData() {
+    records.value = [];
+    fullSnapshots.value = {};
+    state.value = null;
+    safeRemove(SAVE_KEY);
+    safeRemove(HISTORY_KEY);
+    safeRemove(FULL_KEY);
+    safeRemove(PACK_KEY);
+  }
+
   function persist() {
-    if (state.value) {
+    if (!state.value) return
+    try {
       state.value.updatedAt = Date.now();
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state.value));
-      touchRecord();
+      const ok = safeSet(SAVE_KEY, JSON.stringify(state.value));
+      if (!ok) {
+        storageWarning.value = '本地存储不可用（隐私模式或存储已满）——进度无法自动保存，请尽快「导出存档 JSON」备份，你的游戏仍可继续。';
+      }
+      touchRecord(state.value.finished); // 完结时保存定型快照；进行中只更新摘要
+    } catch {
+      storageWarning.value = '本地存储异常——进度无法自动保存，请尽快「导出存档 JSON」备份。';
     }
   }
   function loadPack(): PromptPack {
     try {
-      const raw = localStorage.getItem(PACK_KEY);
+      const raw = safeGet(PACK_KEY);
       if (raw) {
         const p = JSON.parse(raw) as PromptPack;
         if (p?.prompts?.length) return p;
@@ -88,11 +157,11 @@ export const useGameStore = defineStore('game', () => {
     return officialPack;
   }
   function savePack() {
-    localStorage.setItem(PACK_KEY, JSON.stringify(pack.value));
+    safeSet(PACK_KEY, JSON.stringify(pack.value));
   }
   function loadSavedGame(): GameState | null {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      const raw = safeGet(SAVE_KEY);
       if (!raw) return null;
       const g = JSON.parse(raw) as GameState;
       if (g?.id) return g;
@@ -105,7 +174,7 @@ export const useGameStore = defineStore('game', () => {
 
   function loadHistory(): GameRecord[] {
     try {
-      const raw = localStorage.getItem(HISTORY_KEY);
+      const raw = safeGet(HISTORY_KEY);
       if (!raw) return [];
       const list = JSON.parse(raw) as GameRecord[];
       if (Array.isArray(list)) return list;
@@ -113,9 +182,7 @@ export const useGameStore = defineStore('game', () => {
     return [];
   }
   function saveHistory() {
-    try {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(records.value.slice(0, MAX_HISTORY)));
-    } catch { /* ignore */ }
+    safeSet(HISTORY_KEY, JSON.stringify(records.value.slice(0, MAX_HISTORY)));
   }
   /** 从当前游戏状态生成摘要快照 */
   function snapshotRecord(s: GameState): GameRecord {
@@ -133,8 +200,12 @@ export const useGameStore = defineStore('game', () => {
       resourceCount: s.resources.filter(r => !r.lost).length,
     };
   }
-  /** 登记/更新一条历史记录（新游戏登记、进度变化或结束更新），并保存全量快照供回顾 */
-  function touchRecord() {
+  /**
+   * 登记/更新一条历史记录（新游戏登记、进度变化或结束更新）。
+   * 全量快照仅在游戏完结时（saveSnapshot=true）保存——进行中的游戏只更新摘要，
+   * 避免每回合的大对象序列化与 localStorage 膨胀。
+   */
+  function touchRecord(saveSnapshot = false) {
     const s = state.value;
     if (!s) return;
     const rec = snapshotRecord(s);
@@ -142,8 +213,10 @@ export const useGameStore = defineStore('game', () => {
     if (idx >= 0) records.value[idx] = rec;
     else records.value.unshift(rec);
     saveHistory();
-    fullSnapshots.value[s.id] = JSON.parse(JSON.stringify(s)) as GameState;
-    saveFullSnapshots();
+    if (saveSnapshot || rec.finished) {
+      fullSnapshots.value[s.id] = JSON.parse(JSON.stringify(s)) as GameState;
+      saveFullSnapshots();
+    }
   }
   function removeRecord(id: string) {
     records.value = records.value.filter(r => r.id !== id);
@@ -162,7 +235,7 @@ export const useGameStore = defineStore('game', () => {
   const fullSnapshots = ref<Record<string, GameState>>(loadFullSnapshots());
   function loadFullSnapshots(): Record<string, GameState> {
     try {
-      const raw = localStorage.getItem(FULL_KEY);
+      const raw = safeGet(FULL_KEY);
       if (raw) {
         const map = JSON.parse(raw) as Record<string, GameState>;
         if (map && typeof map === 'object') return map;
@@ -176,9 +249,9 @@ export const useGameStore = defineStore('game', () => {
     for (const id of Object.keys(fullSnapshots.value)) {
       if (!keep.has(id)) delete fullSnapshots.value[id];
     }
-    try {
-      localStorage.setItem(FULL_KEY, JSON.stringify(fullSnapshots.value));
-    } catch {
+    const ok = safeSet(FULL_KEY, JSON.stringify(fullSnapshots.value));
+    if (!ok) {
+      // 配额不足：从最旧的全量快照开始丢弃，直到写入成功或无可丢弃
       const ordered = [...records.value].sort((a, b) => a.createdAt - b.createdAt).map(r => r.id);
       const drop = ordered.find(id => fullSnapshots.value[id]);
       if (drop) {
@@ -727,9 +800,13 @@ export const useGameStore = defineStore('game', () => {
   // ---------- 启动时恢复 ----------
   const saved = loadSavedGame();
   if (saved) state.value = saved;
+  if (!isStorageAvailable() && !storageWarning.value) {
+    storageWarning.value = '本地存储不可用（隐私模式或浏览器禁用了站点数据）——进度无法自动保存，你仍可游玩，但刷新后进度将丢失。可随时「导出存档 JSON」备份。';
+  }
 
   return {
     pack, state, currentPrompt, currentEntryIndex, currentEntryText, storageUsed,
+    storageWarning, clearLocalData,
     records, removeRecord, clearRecords, getRecordSnapshot,
     startGame, completeTurn, newGame,
     addExperience, forgetMemory, renameMemory, stabilizeMemory, restoreMemory,

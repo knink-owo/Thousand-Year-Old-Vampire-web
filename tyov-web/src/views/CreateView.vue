@@ -51,14 +51,14 @@ function clearItem<T extends { name?: string; text?: string }>(item: T) {
 
 function resetAll() {
   if (window.confirm('确定要放弃当前游戏并重新开始吗？所有进度将丢失。')) {
-    localStorage.removeItem('tyov:save:v1')
+    store.clearLocalData()
     window.location.reload()
   }
 }
 
 function clearAllData() {
   if (window.confirm('确定清除全部本地数据（含导入的提示包）吗？')) {
-    localStorage.clear()
+    store.clearLocalData()
     window.location.reload()
   }
 }

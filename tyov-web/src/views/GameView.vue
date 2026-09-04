@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import PromptCard from '../components/PromptCard.vue'
 import TraitPanel from '../components/TraitPanel.vue'
+import EffectActions from '../components/EffectActions.vue'
 import { placeExperienceDecision, entrySkipsExperience } from '../engine/core'
 import type { Memory } from '../types/game'
 
@@ -145,7 +146,7 @@ function moveToDiaryFromGame(memoryId: string) {
 }
 
 function endGameNow() {
-  if (window.confirm(`确认在此终结「${s.value.name}」的千年之旅吗？故事将画上句号，五位特征化作碑文。`)) {
+  if (window.confirm('确认在此终结旅程吗？之后可在"历史"中回顾这段千年。')) {
     store.endGame(`你选择在此终结自己的千年——${s.value.name}的故事就此合上。`)
   }
 }
@@ -158,6 +159,26 @@ function exportGameJson() {
   a.download = `${store.state?.name ?? 'vampire'}-存档.json`
   a.click()
   URL.revokeObjectURL(a.href)
+}
+
+// ---- 效果执行引导：跳转到特征面板 tab ----
+const traitPanelRef = ref<InstanceType<typeof TraitPanel> | null>(null)
+function gotoPanelTab(tab: string) {
+  // 桌面端直接切；移动端打开抽屉并设定初始 tab
+  if (window.innerWidth >= 1024) {
+    traitPanelRef.value?.setTab(tab)
+  } else {
+    drawerTab.value = tab as 'memory' | 'diary'
+    drawerOpen.value = true
+  }
+}
+
+// ---- 移动端抽屉 ----
+const drawerOpen = ref(false)
+const drawerTab = ref<'memory' | 'diary'>('memory')
+function openDrawer(tab: 'memory' | 'diary') {
+  drawerTab.value = tab
+  drawerOpen.value = true
 }
 
 function completeTurn() {
@@ -231,6 +252,13 @@ function completeTurn() {
 
       <!-- 提示卡 -->
       <PromptCard :entry-index="store.currentEntryIndex" />
+
+      <!-- 效果执行引导 -->
+      <EffectActions
+        v-if="!s.finished"
+        :entry-index="store.currentEntryIndex"
+        @goto-tab="gotoPanelTab"
+      />
 
       <!-- 岁月流逝：凡人会老去（规则书"角色"节） -->
       <div v-if="showAging && livingMortals.length > 0 && !s.finished" class="card p-5 border-amber-900/40">
@@ -361,9 +389,36 @@ function completeTurn() {
       </div>
     </div>
 
-    <!-- 右列：特征面板 -->
-    <div class="lg:sticky lg:top-6 min-w-0">
-      <TraitPanel />
+    <!-- 右列：特征面板（桌面端） -->
+    <div class="lg:sticky lg:top-6 min-w-0 hidden lg:block">
+      <TraitPanel ref="traitPanelRef" />
     </div>
   </div>
+
+  <!-- 移动端底部工具条 -->
+  <div v-if="!s.finished" class="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-amber-900/50 bg-[#14100e]/95 backdrop-blur px-4 py-2.5">
+    <div class="flex items-center justify-center gap-6 text-sm">
+      <button class="btn btn-ghost text-xs px-5" @click="openDrawer('memory')">📋 特征</button>
+      <button class="btn btn-ghost text-xs px-5" @click="openDrawer('diary')">📖 日志</button>
+    </div>
+  </div>
+
+  <!-- 移动端特征抽屉 -->
+  <Teleport to="body">
+    <div
+      v-if="drawerOpen"
+      class="lg:hidden fixed inset-0 z-50"
+    >
+      <div class="absolute inset-0 bg-black/60" @click="drawerOpen = false"></div>
+      <div class="absolute bottom-0 inset-x-0 max-h-[70svh] overflow-y-auto rounded-t-2xl border-t border-amber-900/50 bg-[#1a120e] shadow-2xl">
+        <div class="sticky top-0 bg-[#1a120e]/95 backdrop-blur px-4 py-2.5 flex items-center justify-between border-b border-amber-900/40 z-10">
+          <span class="text-xs tracking-[0.3em] opacity-60">{{ drawerTab === 'diary' ? '日 志' : '特 征' }}</span>
+          <button class="btn btn-ghost text-xs" @click="drawerOpen = false">收起 ▾</button>
+        </div>
+        <div class="p-3 pb-8">
+          <TraitPanel :initial-tab="drawerTab" />
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>

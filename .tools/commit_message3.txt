@@ -1,0 +1,37 @@
+feat: 效果执行引导、移动端抽屉、快照优化与存储健壮性
+
+效果执行引导（P2-①）
+- 新增 engine/effectActions.ts：38 种效果归类为
+  auto(直执行)/select(选目标)/input(输名字)/manual(去面板)/read(已知晓)
+  五种处理模式映射表（纯函数，7 项单测）
+- 新增 components/EffectActions.vue：提示卡下方的交互式效果区
+  - 直执行：记忆槽增减、随机失去经历
+  - 选择浮层：列出合法候选（活凡人/未勾选技能/未失资源等），点选即执行
+  - 输入表单：技能/资源/角色命名后确认
+  - 手动引导：「去面板」联动切换 TraitPanel tab
+  - 完成计数与 ✓ 标记（支持 repeat 2/3 次），换提示自动重置（UI 级状态）
+- PromptCard 移除旧的效果文字清单（职责移交 EffectActions，消除重复显示）
+
+移动端底部抽屉（P2-②）
+- 窄屏（<1024px）新增底部固定工具条「特征/日志」→ 底部抽屉
+  （遮罩 + 70vh 滚动 + 收起）；桌面端布局不变
+- TraitPanel 支持 initialTab prop + setTab 供外部切换
+- 效果引导在移动端自动打开抽屉对应 tab
+
+快照存储优化（P2-③）
+- 进行中的游戏只更新历史摘要，不再每回合全量序列化
+- 游戏完结时自动保存定型全量快照（FULL_KEY）
+- ReviewView 区分文案：未完结→「这段旅程尚未终结」；已完结无快照→「未留存」
+- HistoryView「回顾」按钮始终可用，移除禁用逻辑
+
+存储健壮性（P1）
+- 新增存储安全层：safeGet/safeSet/safeRemove 统一封装，探测可用性
+- persist() 写入失败不再中断游戏，顶部横幅提示"导出存档 JSON 备份"
+- 启动时检测 localStorage 不可用（隐私模式/禁用）即提示
+- 新增 clearLocalData() 统一清理四键，CreateView 弃档/抹除改用它
+
+其他
+- 结束旅程确认文案改为「确认在此终结旅程吗？之后可在"历史"中回顾这段千年。」
+- README 标题副标题微调
+- 新增 E2E：e2e_p1_final / e2e_p2_final / e2e_review_smoke
+- 单测 28 项全绿（核心 21 + effectActions 7）

@@ -23,10 +23,6 @@ function canContinue(id: string): boolean {
   // 只能继续"当前存档"对应的未完结旅程
   return !!store.state && store.state.id === id && !store.state.finished
 }
-
-function canReview(id: string): boolean {
-  return store.getRecordSnapshot(id) !== null
-}
 </script>
 
 <template>
@@ -68,13 +64,7 @@ function canReview(id: string): boolean {
         </div>
         <div class="shrink-0 flex flex-wrap gap-2 justify-end">
           <button v-if="canContinue(r.id)" class="btn btn-gold text-sm" @click="emit('navigate', 'create')">继续</button>
-          <button
-            class="btn text-sm"
-            :class="{ 'opacity-40 cursor-not-allowed': !canReview(r.id) }"
-            :disabled="!canReview(r.id)"
-            :title="canReview(r.id) ? '以只读方式回顾这段旅程的完整内容' : '该段往事的详细记录未留存于本机'"
-            @click="emit('navigate', 'review', r.id)"
-          >
+          <button class="btn text-sm" @click="emit('navigate', 'review', r.id)">
             回顾
           </button>
           <button class="btn btn-ghost text-sm" @click="store.removeRecord(r.id)">遗忘</button>
@@ -84,7 +74,7 @@ function canReview(id: string): boolean {
       <div class="flex justify-end">
         <button class="btn btn-ghost text-xs opacity-70" @click="store.clearRecords()">抹去全部历史</button>
       </div>
-      <p class="text-xs opacity-40 text-center">每段旅程的完整记录都保存在本机 · 「回顾」以只读方式展开逝去的千年</p>
+      <p class="text-xs opacity-40 text-center">每段旅程的完整记录都保存在本机 · 「回顾」以只读方式展开逝去的千年 · 未完结的旅程仅留摘要</p>
     </div>
   </div>
 </template>

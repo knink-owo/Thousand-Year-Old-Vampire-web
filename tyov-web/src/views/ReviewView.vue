@@ -10,6 +10,12 @@ const store = useGameStore()
 // 只读快照：绝不写入 store.state，避免污染当前存档
 const snap = computed<GameState | null>(() => store.getRecordSnapshot(props.recordId))
 
+// 该记录是否已终结（决定"无快照"时的提示语义：未终结 vs 未留存）
+const recordFinished = computed(() => {
+  const rec = store.records.find(r => r.id === props.recordId)
+  return rec?.finished ?? false
+})
+
 function fmtDate(ts?: number): string {
   if (!ts) return '—'
   const d = new Date(ts)
@@ -40,11 +46,18 @@ function exportDiary() {
 
 <template>
   <div class="fade-in max-w-4xl mx-auto">
-    <!-- 佚失状态（升级前的旧记录没有全量快照） -->
+    <!-- 无快照状态：区分"尚未终结"与"未留存" -->
     <div v-if="!snap" class="card p-10 text-center">
       <p class="text-3xl mb-4 opacity-50">🕯️</p>
-      <p class="opacity-80">这段往事的详细记录未能留存。</p>
-      <p class="text-sm opacity-50 mt-2">只有摘要被保留了下来——记忆也会随岁月佚失。</p>
+      <template v-if="!recordFinished">
+        <p class="opacity-80">这段旅程尚未终结。</p>
+        <p class="text-sm opacity-50 mt-2">只有摘要被保留了下来——未完结的千年没有完整回顾。</p>
+        <p class="text-sm opacity-50 mt-1">让它继续，或是选择在途中终结它。</p>
+      </template>
+      <template v-else>
+        <p class="opacity-80">这段往事的详细记录未能留存。</p>
+        <p class="text-sm opacity-50 mt-2">只有摘要被保留了下来——记忆也会随岁月佚失。</p>
+      </template>
       <button class="btn mt-6" @click="emit('navigate', 'history')">← 返回历史</button>
     </div>
 

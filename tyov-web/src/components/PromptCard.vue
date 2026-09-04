@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGameStore } from '../stores/game'
-import { effectText } from '../engine/effectLabels'
 
 const store = useGameStore()
 
@@ -30,17 +29,5 @@ const entry = computed(() => {
     <p class="text-lg md:text-xl leading-relaxed title-serif whitespace-pre-wrap">
       {{ entry?.text }}
     </p>
-
-    <!-- 效果提示 -->
-    <div v-if="entry?.effects?.length" class="mt-5 pt-4 border-t border-amber-900/40">
-      <p class="text-xs tracking-widest opacity-50 mb-2">▸ 本提示的机制效果</p>
-      <ul class="space-y-1.5 text-sm">
-        <li v-for="(e, i) in entry.effects" :key="i" class="flex items-start gap-2">
-          <span class="blood-text mt-0.5">✠</span>
-          <span>{{ effectText(e) }}</span>
-        </li>
-      </ul>
-      <p class="text-xs opacity-40 mt-2">在右侧执行这些效果。规则：无可勾选技能时改为失去资源；无可失去资源时改为勾选技能；两者皆无则游戏结束。</p>
-    </div>
   </div>
 </template>

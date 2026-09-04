@@ -46,6 +46,15 @@ const showNav = computed(() => view.value !== 'home')
 
 <template>
   <div class="min-h-screen flex flex-col">
+    <!-- 存储不可用警告 -->
+    <div
+      v-if="store.storageWarning"
+      class="bg-red-950/80 border-b border-red-700/60 text-red-200 text-sm px-4 py-2.5 text-center"
+      role="alert"
+    >
+      ⚠ {{ store.storageWarning }}
+    </div>
+
     <!-- 顶部题铭 + 导航 -->
     <header class="pt-6 pb-2 px-4">
       <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
