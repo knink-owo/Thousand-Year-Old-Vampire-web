@@ -1,9 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { effectActionSpec, requiredCount, isAutoAction, manualTabOf } from './effectActions';
+import {
+  effectActionSpec, requiredCount, isAutoAction, manualTabOf, fallbackOf, defaultInputOf,
+} from './effectActions';
 import type { Effect } from '../types/game';
 
 function e(type: Effect['type']): Effect {
   return { type } as Effect;
+}
+function withName(type: 'gainSkill' | 'gainResource', name: string): Effect {
+  return { type, name } as Effect;
 }
 
 describe('effectActionSpec', () => {
@@ -49,5 +54,18 @@ describe('effectActionSpec', () => {
   it('未知类型安全回退为 manual', () => {
     const unknown = effectActionSpec({ type: 'note', text: 'x' } as Effect);
     expect(unknown.mode).toBe('read');
+  });
+
+  it('fallback：无可杀角色时建议改而创造角色/印记（规则书互斥句式）', () => {
+    const fbs = fallbackOf(e('killCharacter'));
+    expect(fbs).toContain('createMortal');
+    expect(fbs).toContain('gainMark'); // 提示34："如果没有，则创建一项印记"
+    expect(fallbackOf(e('gainSkill'))).toEqual([]);
+  });
+
+  it('defaultInputOf：预设技能/资源名自动填入（如"获得技能嗜血"）', () => {
+    expect(defaultInputOf(withName('gainSkill', '嗜血'))).toBe('嗜血');
+    expect(defaultInputOf(withName('gainResource', '秘密阴谋集团'))).toBe('秘密阴谋集团');
+    expect(defaultInputOf(e('createMortal'))).toBe('');
   });
 });

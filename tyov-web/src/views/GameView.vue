@@ -228,6 +228,8 @@ function completeTurn() {
   experienceText.value = ''
   diaryText.value = ''
   resetPlacement()
+  // 滚回页面顶部：让玩家一眼看到本轮骰子与下一提示
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 </script>
 
@@ -248,6 +250,30 @@ function completeTurn() {
           <button class="btn btn-ghost text-xs" @click="exportGameJson">导出存档 JSON</button>
           <button class="btn btn-ghost text-xs" @click="endGameNow">结束旅程</button>
         </div>
+      </div>
+
+      <!-- 掷骰结果（置于提示之上：完成回合后一屏可见提示与骰子） -->
+      <div v-if="rollResult" class="card p-5 text-center">
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">骰 子 之 判</p>
+        <div class="flex items-center justify-center gap-8">
+          <div class="die-roll">
+            <div class="text-4xl gold-text title-serif">{{ rollResult.d10 }}</div>
+            <div class="text-xs opacity-50 mt-1">D10</div>
+          </div>
+          <div class="text-2xl opacity-40">−</div>
+          <div class="die-roll">
+            <div class="text-4xl gold-text title-serif">{{ rollResult.d6 }}</div>
+            <div class="text-xs opacity-50 mt-1">D6</div>
+          </div>
+          <div class="text-2xl opacity-40">=</div>
+          <div class="die-roll">
+            <div class="text-4xl blood-text title-serif">{{ rollResult.delta > 0 ? '+' : '' }}{{ rollResult.delta }}</div>
+            <div class="text-xs opacity-50 mt-1">差</div>
+          </div>
+        </div>
+        <p class="mt-4 text-sm opacity-80">
+          {{ rollResult.delta > 0 ? `向后移动 ${rollResult.delta}，前往提示 ${rollResult.to}` : rollResult.delta < 0 ? `向前移动 ${Math.abs(rollResult.delta)}，前往提示 ${rollResult.to}` : '差为 0——停留在相同的提示' }}
+        </p>
       </div>
 
       <!-- 提示卡 -->
@@ -294,30 +320,6 @@ function completeTurn() {
         <template v-else>
           <p class="text-sm opacity-85">你再次抵达此处——随即醒来，再也无法返回梦境。</p>
         </template>
-      </div>
-
-      <!-- 掷骰结果 -->
-      <div v-if="rollResult" class="card p-5 text-center">
-        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">骰 子 之 判</p>
-        <div class="flex items-center justify-center gap-8">
-          <div class="die-roll">
-            <div class="text-4xl gold-text title-serif">{{ rollResult.d10 }}</div>
-            <div class="text-xs opacity-50 mt-1">D10</div>
-          </div>
-          <div class="text-2xl opacity-40">−</div>
-          <div class="die-roll">
-            <div class="text-4xl gold-text title-serif">{{ rollResult.d6 }}</div>
-            <div class="text-xs opacity-50 mt-1">D6</div>
-          </div>
-          <div class="text-2xl opacity-40">=</div>
-          <div class="die-roll">
-            <div class="text-4xl blood-text title-serif">{{ rollResult.delta > 0 ? '+' : '' }}{{ rollResult.delta }}</div>
-            <div class="text-xs opacity-50 mt-1">差</div>
-          </div>
-        </div>
-        <p class="mt-4 text-sm opacity-80">
-          {{ rollResult.delta > 0 ? `向后移动 ${rollResult.delta}，前往提示 ${rollResult.to}` : rollResult.delta < 0 ? `向前移动 ${Math.abs(rollResult.delta)}，前往提示 ${rollResult.to}` : '差为 0——停留在相同的提示' }}
-        </p>
       </div>
 
       <!-- 回答面板 -->

@@ -146,6 +146,14 @@ export const useGameStore = defineStore('game', () => {
       storageWarning.value = '本地存储异常——进度无法自动保存，请尽快「导出存档 JSON」备份。';
     }
   }
+
+  // ---------- 效果撤回（行级） ----------
+  // EffectActions 在每条效果执行前保存状态快照；该行"撤回"时恢复到快照。
+  function restoreSnapshot(snapshot: GameState) {
+    if (!snapshot?.id) return
+    state.value = snapshot
+    persist()
+  }
   function loadPack(): PromptPack {
     try {
       const raw = safeGet(PACK_KEY);
@@ -818,7 +826,7 @@ export const useGameStore = defineStore('game', () => {
     addMark, removeMark, crippleMark,
     endGame, enterDreamWorld,
     exportGameJson, importGameJson, exportDiaryMarkdown, exportPackJson, importPackJson,
-    persist,
+    persist, restoreSnapshot,
   };
 });
 

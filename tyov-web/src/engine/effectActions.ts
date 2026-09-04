@@ -35,6 +35,12 @@ export interface EffectActionSpec {
   manualTab?: 'memory' | 'skill' | 'resource' | 'character' | 'mark'
   /** 输入默认值（如 gainSkill 已从文本提取了技能名） */
   defaultValue?: string
+  /**
+   * 互斥条件：本效果无可选目标时，规则书指示"改而执行替代效果"
+   * （如提示1"杀死一个凡人角色，如果没有可用的角色，请创造一个"）。
+   * 值为替代效果的 type 数组；组件在候选为空时据此提供替代建议。
+   */
+  fallback?: string[]
 }
 
 const spec: Record<string, EffectActionSpec> = {
@@ -90,8 +96,16 @@ const spec: Record<string, EffectActionSpec> = {
   createImmortal: { mode: 'input', inputPlaceholder: '不朽者角色名 · 一句话描述', hint: '创造不朽者角色' },
   createImmortalHostile: { mode: 'input', inputPlaceholder: '敌对不朽者名 · 描述', hint: '创造敌对不朽者' },
   createCharacter: { mode: 'input', inputPlaceholder: '角色名 · 一句话描述', hint: '创造角色' },
-  killCharacter: { mode: 'select', target: 'character', filter: 'alive', confirmText: '杀死这位角色？', hint: '杀死一个角色' },
-  deleteCharacter: { mode: 'select', target: 'character', filter: 'alive', confirmText: '删除这位凡人角色？', hint: '删除一个凡人角色' },
+  // 规则书互斥："杀死一个凡人角色。如果没有可用的角色，请创造一个"（提示1/3/5/34）
+  // 候选限定为"活着的凡人"——不朽者不是可杀目标，且互斥分支只针对凡人
+  killCharacter: {
+    mode: 'select', target: 'character', filter: 'aliveMortal', confirmText: '杀死这位角色？',
+    hint: '杀死一个凡人角色', fallback: ['createMortal', 'createImmortal', 'createCharacter', 'gainMark'],
+  },
+  deleteCharacter: {
+    mode: 'select', target: 'character', filter: 'alive', confirmText: '删除这位凡人角色？',
+    hint: '删除一个凡人角色', fallback: ['createMortal'],
+  },
   killAllMortals: { mode: 'manual', manualTab: 'character', hint: '划掉所有凡人角色（在角色面板逐一点击死亡）' },
   mortalToHostileImmortal: { mode: 'select', target: 'character', filter: 'mortal', hint: '凡人转化为敌对的不朽者' },
   mortalToImmortal: { mode: 'select', target: 'character', filter: 'mortal', hint: '凡人转化为不朽者' },
@@ -122,7 +136,19 @@ export function isAutoAction(e: Effect): boolean {
   return effectActionSpec(e).mode === 'auto'
 }
 
-/** 手动模式的指引 tab（抹掉上面的 hack 字段） */
+/** 手动模式的指引 tab */
 export function manualTabOf(e: Effect): EffectActionSpec['manualTab'] {
   return effectActionSpec(e).manualTab
+}
+
+/** 互斥替代效果类型（候选为空时给玩家的建议） */
+export function fallbackOf(e: Effect): string[] {
+  return effectActionSpec(e).fallback ?? []
+}
+
+/** 输入模式的预设默认值（如"获得技能嗜血"→ 自动填入"嗜血"） */
+export function defaultInputOf(e: Effect): string {
+  if (e.type === 'gainSkill' && e.name) return e.name
+  if (e.type === 'gainResource' && e.name) return e.name
+  return ''
 }
