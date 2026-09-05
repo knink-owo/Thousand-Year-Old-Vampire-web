@@ -172,6 +172,11 @@ body {
   background: rgba(120, 90, 40, 0.15);
   box-shadow: none;
 }
+/* 纸面（浅色底）上的禁用按钮：默认 0.35 透明度过低会与纸张融为一体，
+   这里略作提高，保证未填完时的按钮仍清晰可读 */
+.btn-parchment:disabled {
+  opacity: 0.7;
+}
 
 /* 输入 */
 .input {

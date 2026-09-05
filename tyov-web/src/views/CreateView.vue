@@ -284,7 +284,7 @@ function buildAndStart() {
               <textarea v-model="m.text" class="input" :placeholder="memoryExamples[i]"></textarea>
               <button class="btn btn-ghost btn-parchment px-3 self-start" title="清空此项" @click="clearItem(m)">×</button>
             </div>
-            <p class="text-xs opacity-70 mt-2">记忆槽共 5 个：第一段概述占 1 个，三项经历与印记经历占其余 4 个。</p>
+            <p class="text-xs opacity-90 mt-2">记忆槽共 5 个：第一段概述占 1 个，三项经历与印记经历占其余 4 个。</p>
           </div>
         </div>
       </div>
@@ -294,7 +294,7 @@ function buildAndStart() {
         <button class="btn btn-gold btn-parchment text-lg px-10" :disabled="!canStart" @click="buildAndStart">
           🩸 成为黑夜的生物
         </button>
-        <p v-if="!canStart" class="text-sm opacity-60 mt-3">请填完上方所有栏位后，才能开始这段千年</p>
+        <p v-if="!canStart" class="text-sm opacity-90 mt-3">请填完上方所有栏位后，才能开始这段千年</p>
       </div>
     </div>
 
