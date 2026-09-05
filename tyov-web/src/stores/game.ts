@@ -94,6 +94,7 @@ export function createEmptyGame(name: string, usesFastMode: boolean): GameState 
     started: false,
     finished: false,
     moves: 0,
+    effectProgress: {},
   };
 }
 
@@ -766,6 +767,14 @@ export const useGameStore = defineStore('game', () => {
     persist();
   }
 
+  /** 记录"岁月流逝"已响应（执行老化或暂缓）：此后再过 4 次回答才会再次提醒（跨会话生效） */
+  function acknowledgeAging() {
+    const s = state.value;
+    if (!s) return;
+    s.agingAcknowledgedAt = s.moves;
+    persist();
+  }
+
   // ---------- 导入导出 ----------
   function exportGameJson(): string {
     return JSON.stringify(state.value, null, 2);
@@ -833,7 +842,7 @@ export const useGameStore = defineStore('game', () => {
     addResource, loseResource, degradeResource, retrieveResource, convertFixedResource, swapResource, renameResource, toggleArtifact,
     addCharacter, killCharacter, ageCharacter, reviveCharacter, returnGhost, characterToResource, mortalToImmortal,
     addMark, removeMark, crippleMark,
-    endGame, enterDreamWorld,
+    endGame, enterDreamWorld, acknowledgeAging,
     exportGameJson, importGameJson, exportDiaryMarkdown, exportPackJson, importPackJson,
     persist, restoreSnapshot,
   };

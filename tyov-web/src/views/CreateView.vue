@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useGameStore } from '../stores/game'
+import ConfirmDialog, { type ConfirmState } from '../components/ConfirmDialog.vue'
 
 const store = useGameStore()
 const hasSave = computed(() => !!store.state && !store.state.finished)
+
+// ---- P2-2：应用内确认/告知弹层（替代 window.confirm / alert） ----
+const confirmAsk = ref<ConfirmState | null>(null)
 
 // ---- 建卡表单（依规则书"创建吸血鬼"一节：1 概述记忆 + ≥3 凡人 + 3 技能 + 3 资源 + 3 经历 + 1 不朽者 + 1 印记/经历）----
 const name = ref('')
@@ -50,16 +54,22 @@ function clearItem<T extends { name?: string; text?: string }>(item: T) {
 }
 
 function resetAll() {
-  if (window.confirm('确定要放弃当前游戏并重新开始吗？所有进度将丢失。')) {
-    store.clearLocalData()
-    window.location.reload()
+  confirmAsk.value = {
+    text: '确定要放弃当前游戏并重新开始吗？所有进度将丢失。',
+    onOk: () => {
+      store.clearLocalData()
+      window.location.reload()
+    },
   }
 }
 
 function clearAllData() {
-  if (window.confirm('确定清除全部本地数据（含导入的提示包）吗？')) {
-    store.clearLocalData()
-    window.location.reload()
+  confirmAsk.value = {
+    text: '确定清除全部本地数据（含导入的提示包）吗？',
+    onOk: () => {
+      store.clearLocalData()
+      window.location.reload()
+    },
   }
 }
 
@@ -134,7 +144,10 @@ function buildAndStart() {
   const extraCount = memories.value.slice(1).filter(m => m.text.trim()).length
   const markOriginCount = mark.value.origin.trim() ? 1 : 0
   if (1 + extraCount + markOriginCount > 5) {
-    window.alert(`记忆槽共有 5 个：第一段概述记忆占 1 个，三项经历最多占 3 个，印记经历占 1 个。你目前填写了 ${extraCount + markOriginCount} 段额外经历，请删减后再开始。`)
+    confirmAsk.value = {
+      okOnly: true,
+      text: `记忆槽共有 5 个：第一段概述记忆占 1 个，三项经历最多占 3 个，印记经历占 1 个。你目前填写了 ${extraCount + markOriginCount} 段额外经历，请删减后再开始。`,
+    }
     return
   }
   store.newGame(name.value.trim(), fastMode.value)
@@ -301,5 +314,12 @@ function buildAndStart() {
         <span v-if="packMsg" class="text-xs" :class="packErr ? 'text-red-300' : 'text-emerald-300'">{{ packMsg }}</span>
       </div>
     </div>
+
+    <!-- P2-2：应用内确认/告知弹层 -->
+    <ConfirmDialog
+      :state="confirmAsk"
+      @ok="() => { confirmAsk?.onOk?.(); confirmAsk = null }"
+      @cancel="confirmAsk = null"
+    />
   </div>
 </template>

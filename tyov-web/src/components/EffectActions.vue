@@ -5,11 +5,15 @@ import { effectText } from '../engine/effectLabels'
 import {
   effectActionSpec, requiredCount, manualTabOf, fallbackOf, defaultInputOf,
 } from '../engine/effectActions'
+import PromptDialog, { type PromptState } from './PromptDialog.vue'
 import type { Memory, Skill, Resource, Character, Mark } from '../types/game'
 
 const store = useGameStore()
 const props = defineProps<{ entryIndex: number }>()
-const emit = defineEmits<{ (e: 'gotoTab', tab: string): void }>()
+const emit = defineEmits<{
+  (e: 'gotoTab', tab: string): void
+  (e: 'progress', p: { done: number; total: number }): void
+}>()
 
 const entry = computed(() => {
   const p = store.currentPrompt
@@ -17,10 +21,24 @@ const entry = computed(() => {
 })
 const effects = computed(() => entry.value?.effects ?? [])
 
-// ---- 处理状态（UI 级，不持久化：按 提示号+条目 键控） ----
-const doneCount = ref<Record<number, number>>({})
+// ---- 处理状态（P1-1：持久化到 GameState.effectProgress，刷新/重进不丢失） ----
 const openPanel = ref<number>(-1) // 当前展开交互浮层的效果下标；-1 = 无
 const inputText = ref('')
+const ask = ref<PromptState | null>(null) // 应用内输入弹层（P2-2）
+
+/** 进度键：`提示号:条目号:效果下标`（按键隔离，换提示/换条目天然重置） */
+const pkey = (idx: number) => `${store.state?.currentPromptNumber ?? 0}:${props.entryIndex}:${idx}`
+function progressOf(idx: number): number {
+  return store.state?.effectProgress?.[pkey(idx)] ?? 0
+}
+function setProgress(idx: number, n: number) {
+  const st = store.state
+  if (!st) return
+  st.effectProgress = st.effectProgress ?? {}
+  if (n <= 0) delete st.effectProgress[pkey(idx)]
+  else st.effectProgress[pkey(idx)] = n
+  store.persist()
+}
 
 // ---- 行级撤回快照：每条效果执行前保存状态；该行"撤回"仅撤销自己 ----
 const rowSnapshots = ref<Record<number, unknown>>({}) // GameState 深拷贝
@@ -35,13 +53,13 @@ function undoRow(idx: number) {
   if (!snap) return
   const mode = effectActionSpec(effects.value[idx]).mode
   store.restoreSnapshot(snap as never)
-  // 该行撤销一次（repeat 效果可逐步回溯）
-  const cur = doneCount.value[idx] ?? 0
+  // 该行撤销一次（repeat 效果可逐步回溯）——进度一并回退（P1-1）
+  const cur = progressOf(idx)
   if (cur <= 1) {
-    doneCount.value[idx] = 0
+    setProgress(idx, 0)
     delete rowSnapshots.value[idx]
   } else {
-    doneCount.value[idx] = cur - 1
+    setProgress(idx, cur - 1)
   }
   // 融合"重写"：input 类撤回后自动展开输入浮层（带预设值）重新填写。
   // restoreSnapshot 替换 state 引用会触发一轮渲染，故在 nextTick 后再展开，
@@ -56,21 +74,22 @@ function undoRow(idx: number) {
   }
 }
 
-// 换提示时重置（以提示号+条目标识为键——撤回恢复快照不改变提示，故不会误重置）
+// 换提示时重置 UI 状态（进度按键持久化，无需重置；清空跨提示的撤回快照，防止误回滚到旧提示）
 watch(
   () => [store.state?.currentPromptNumber, entry.value?.text],
   () => {
-    doneCount.value = {}
     openPanel.value = -1
     inputText.value = ''
+    ask.value = null
+    rowSnapshots.value = {}
   },
 )
 
 function isDone(idx: number): boolean {
-  return (doneCount.value[idx] ?? 0) >= requiredCount(effects.value[idx])
+  return progressOf(idx) >= requiredCount(effects.value[idx])
 }
 function markOne(idx: number) {
-  doneCount.value[idx] = (doneCount.value[idx] ?? 0) + 1
+  setProgress(idx, progressOf(idx) + 1)
   openPanel.value = -1
   inputText.value = ''
 }
@@ -213,39 +232,77 @@ function runAuto(idx: number) {
 function onSelect(idx: number, id: string) {
   const s = store.state!
   const fx = effects.value[idx]
+  // ---- 需要额外输入的：先弹应用内输入框（P2-2），确认后才执行 ----
+  if (fx.type === 'memoryToSkill') {
+    const m = s.memories.find(x => x.id === id)!
+    ask.value = {
+      title: '将一段记忆转化为技能',
+      text: `「${m.title || '未命名的记忆'}」将被划掉，不再占用记忆槽。技能叫什么？`,
+      placeholder: '新技能名',
+      initial: m.title ?? '',
+      onOk: (v) => {
+        if (!v.trim()) return
+        perform(idx, () => { store.memoryToSkill(id, v.trim()); markOne(idx) })
+      },
+    }
+    return
+  }
+  if (fx.type === 'rewriteSkill') {
+    const sk = s.skills.find(x => x.id === id)!
+    ask.value = {
+      title: '重写这项技能',
+      text: `将「${sk.name}」重写为一项新技能。新名字是？`,
+      placeholder: '新技能名',
+      initial: sk.name,
+      onOk: (v) => {
+        if (!v.trim()) return
+        perform(idx, () => { store.rewriteSkill(id, v.trim()); markOne(idx) })
+      },
+    }
+    return
+  }
+  if (fx.type === 'swapResource') {
+    const r = s.resources.find(x => x.id === id)
+    ask.value = {
+      title: '以旧换新',
+      text: `放弃「${r?.name ?? ''}」，换入一项当代资源。新的资源是？`,
+      placeholder: '新资源名',
+      initial: '',
+      onOk: (v) => {
+        if (!v.trim()) return
+        perform(idx, () => { store.swapResource(id, v.trim()); markOne(idx) })
+      },
+    }
+    return
+  }
+  if (fx.type === 'characterToResource') {
+    const c = s.characters.find(x => x.id === id)!
+    ask.value = {
+      title: '角色化为资源',
+      text: `「${c.name}」将变为一件由你供养的不死之物。它作为资源的名称是？`,
+      placeholder: '资源名',
+      initial: `${c.name}（被转化）`,
+      allowEmpty: true,
+      onOk: (v) => {
+        const t = v.trim()
+        perform(idx, () => { store.characterToResource(id, t || undefined); markOne(idx) })
+      },
+    }
+    return
+  }
   const doIt = () => {
     switch (fx.type) {
       case 'loseMemory': store.forgetMemory(id); break
-      case 'memoryToSkill': {
-        const m = s.memories.find(x => x.id === id)!
-        const n = window.prompt('将这段记忆转化为技能——技能叫什么？', m.title)
-        if (n === null) return
-        store.memoryToSkill(id, n)
-        break
-      }
       case 'memoryToDiary': store.moveMemoryToDiary(id); break
       case 'stabilizeMemory': store.stabilizeMemory(id); break
       case 'restoreMemory': store.restoreMemory(id); break
       case 'checkSkill': case 'checkSkill2': case 'checkSkill3': store.checkSkill(id); break
       case 'uncheckSkill': store.uncheckSkill(id); break
       case 'loseSkill': case 'loseCheckedSkill': case 'loseUncheckedSkill': store.loseSkill(id); break
-      case 'rewriteSkill': {
-        const sk = s.skills.find(x => x.id === id)!
-        const n = window.prompt('重写这项技能——新名字？', sk.name)
-        if (n === null) return
-        store.rewriteSkill(id, n)
-        break
-      }
       case 'loseResource': case 'loseResource2': case 'loseResource3': store.loseResource(id); break
       case 'loseFixedResource': store.loseResource(id); break
       case 'convertFixedResources': store.convertFixedResource(id); break
       case 'degradeResource': store.degradeResource(id); break
-      case 'swapResource': {
-        const n = window.prompt('换入的当代资源是什么？')
-        if (n === null || !n.trim()) return
-        store.swapResource(id, n)
-        break
-      }
       case 'destroyResource': store.loseResource(id); break
       case 'retrieveResource': store.retrieveResource(id); break
       case 'loseMark': store.removeMark(id); break
@@ -253,13 +310,6 @@ function onSelect(idx: number, id: string) {
       case 'killCharacter': case 'deleteCharacter': store.killCharacter(id); break
       case 'mortalToHostileImmortal': case 'mortalToImmortal': store.mortalToImmortal(id); break
       case 'reviveCharacter': store.reviveCharacter(id); break
-      case 'characterToResource': {
-        const c = s.characters.find(x => x.id === id)!
-        const n = window.prompt('化为资源——名字？', `${c.name}（被转化）`)
-        if (n === null) return
-        store.characterToResource(id, n)
-        break
-      }
       case 'returnGhost': store.returnGhost(id); break
       case 'dieByAge': store.ageCharacter(id); break
       default: break
@@ -299,6 +349,14 @@ function togglePanel(idx: number) {
 const allDone = computed(() =>
   effects.value.every((_, i) => isExcluded(i) || isDone(i)),
 )
+
+// ---- P3-2：向 GameView 上报未处理数量（用于"完成回合"旁的提示） ----
+const doneTotal = computed(() => {
+  const total = effects.value.filter((_, i) => !isExcluded(i)).length
+  const done = effects.value.filter((_, i) => isDone(i) && !isExcluded(i)).length
+  return { done, total }
+})
+watch(doneTotal, (p) => emit('progress', p), { immediate: true })
 </script>
 
 <template>
@@ -381,6 +439,11 @@ const allDone = computed(() =>
                 {{ effectText(effects[fb.index]) }}
               </button>
             </div>
+
+            <!-- P1-2：无任何适用目标（且无替代建议）时，允许按规则跳过并标记完成 -->
+            <div v-if="candidates.length === 0 && fallbackTargets.length === 0" class="mt-2">
+              <button class="btn btn-ghost text-xs" @click="markOne(i)">无适用目标，跳过此效果</button>
+            </div>
           </div>
 
           <!-- 输入浮层（在内容列内纵向展开） -->
@@ -391,5 +454,12 @@ const allDone = computed(() =>
         </div>
       </li>
     </ul>
+
+    <!-- P2-2：应用内输入弹层（替代 window.prompt） -->
+    <PromptDialog
+      :state="ask"
+      @ok="(v: string) => { ask?.onOk(v); ask = null }"
+      @cancel="ask = null"
+    />
   </div>
 </template>

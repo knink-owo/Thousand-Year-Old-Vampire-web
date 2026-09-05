@@ -212,4 +212,9 @@ export interface GameState {
   finishedAt?: number;
   dreamWorld?: boolean; // 提示48第3条目：已踏入梦境之地（无印记的吸血鬼，第二次抵达即醒来）
   moves: number;               // 已移动次数（≈ 已回答提示数）
+
+  /** 效果执行进度（持久化）：`提示号:条目号:效果下标` → 已完成次数；刷新/重进不丢失，避免重复执行 */
+  effectProgress: Record<string, number>;
+  /** 岁月流逝：上次玩家对"凡人老去"作出响应（执行或暂缓）时的 moves；`moves - 该值 >= 4` 时补弹老化提醒 */
+  agingAcknowledgedAt?: number;
 }

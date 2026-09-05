@@ -4,6 +4,8 @@ import { useGameStore } from '../stores/game'
 import PromptCard from '../components/PromptCard.vue'
 import TraitPanel from '../components/TraitPanel.vue'
 import EffectActions from '../components/EffectActions.vue'
+import PromptDialog, { type PromptState } from '../components/PromptDialog.vue'
+import ConfirmDialog, { type ConfirmState } from '../components/ConfirmDialog.vue'
 import { placeExperienceDecision, entrySkipsExperience } from '../engine/core'
 import type { Memory } from '../types/game'
 
@@ -15,6 +17,10 @@ const emit = defineEmits<{ (e: 'navigate', to: 'home'): void }>()
 const experienceText = ref('')
 const diaryText = ref('')
 
+// ---- P2-2：应用内输入/确认弹层（替代 window.prompt / confirm / alert） ----
+const ask = ref<PromptState | null>(null)
+const confirmAsk = ref<ConfirmState | null>(null)
+
 // ---- 是否创建经历：系统自动判定（规则书：部分提示明确要求"不要为此创建经历"）----
 const bypassExperience = computed(() => {
   const entry = store.currentPrompt?.entries[store.currentEntryIndex - 1]
@@ -24,20 +30,24 @@ const bypassExperience = computed(() => {
 const rollResult = ref<{ d10: number; d6: number; delta: number; to: number } | null>(null)
 const lastMessage = ref('')
 
+// ---- P3-2：效果处理进度（EffectActions 上报） ----
+const effectStatus = ref<{ done: number; total: number }>({ done: 0, total: 0 })
+
 // ---- 当前条目效果（梦境之地分支判定用）----
 const entryEffects = computed(() => store.currentPrompt?.entries[store.currentEntryIndex - 1]?.effects ?? [])
 watch(
   () => [store.state?.currentPromptNumber, store.currentEntryIndex],
   () => {
-    showAging.value = false
+    refreshAging()
   },
 )
 
 // ---- 梦境之地（提示48第3条目）----
 const dreamWorldEntry = computed(() => entryEffects.value.some(e => e.type === 'dreamWorld'))
 function enterDream() {
-  if (window.confirm('确定踏入梦境之地吗？所有角色、印记与资源将被留下（唯保留一把银剑），并回到提示 10，成为无印记的吸血鬼。')) {
-    store.enterDreamWorld()
+  confirmAsk.value = {
+    text: '确定踏入梦境之地吗？所有角色、印记与资源将被留下（唯保留一把银剑），并回到提示 10，成为无印记的吸血鬼。',
+    onOk: () => store.enterDreamWorld(),
   }
 }
 function takeDreamBook() {
@@ -46,20 +56,30 @@ function takeDreamBook() {
   }
 }
 
-// ---- 岁月流逝（规则书"角色"节：每隔四五个提示，一位凡人会因年老而去世）----
+// ---- 岁月流逝（P1-3：提醒随存档持久化——刷新/重进补弹，仍由玩家选择执行或暂缓） ----
 const showAging = ref(false)
 const livingMortals = computed(() => s.value.characters.filter(c => !c.dead && !c.immortal))
-watch(
-  () => s.value.moves,
-  (moves, prev) => {
-    if (typeof prev === 'number' && moves > 0 && moves % 4 === 0 && showAging.value === false) {
-      showAging.value = livingMortals.value.length > 0
-    }
-  },
-)
+/**
+ * 跨会话判定：自上次响应（执行或暂缓）以来已跨过 4 次回答，且有在世凡人 → 补弹提醒。
+ * 响应时刻记入 `agingAcknowledgedAt`，因此刷新丢失不了提醒，暂缓也不会在同段内重复打扰。
+ */
+function refreshAging() {
+  const st = store.state
+  if (!st || st.finished) { showAging.value = false; return }
+  showAging.value = livingMortals.value.length > 0 && (st.agingAcknowledgedAt ?? 0) + 4 <= st.moves
+}
+watch(() => store.state?.moves, refreshAging, { immediate: true })
+watch(livingMortals, (lm) => {
+  if (lm.length === 0) showAging.value = false
+})
 function ageIt(id: string) {
   store.ageCharacter(id)
+  store.acknowledgeAging()
   if (livingMortals.value.length === 0) showAging.value = false
+}
+function postponeAging() {
+  store.acknowledgeAging()
+  showAging.value = false
 }
 
 const showDiaryEditor = computed(() => {
@@ -122,32 +142,39 @@ const canComplete = computed(() => {
 function forgetFromGameView(memoryId: string) {
   const m = s.value.memories.find(x => x.id === memoryId)
   if (!m) return
-  if (window.confirm(`确定要遗忘记忆「${memoryLabel(m)}」吗？记忆将被划掉，其中的经历不再占用记忆槽。`)) {
-    store.forgetMemory(memoryId)
+  confirmAsk.value = {
+    text: `确定要遗忘记忆「${memoryLabel(m)}」吗？记忆将被划掉，其中的经历不再占用记忆槽。`,
+    onOk: () => store.forgetMemory(memoryId),
   }
 }
 
 function moveToDiaryFromGame(memoryId: string) {
   if (!s.value.diaryResourceId) {
-    const n = window.prompt(
-      '创建你的日记（规则书："请给它一个简短的描述"）。例如：一本结实的皮革装订书；一组饰有象形文字图案的罐子；镶嵌金丝边框的可怕仪式面具；一个古老网站上的密码保护论坛。',
-      '一本结实的皮革装订书',
-    )
-    if (n === null) return
-    store.moveMemoryToDiary(memoryId, n.trim() || undefined)
+    ask.value = {
+      title: '创建你的日记',
+      text: '规则书："请给它一个简短的描述"。例如：一本结实的皮革装订书；一组饰有象形文字图案的罐子；镶嵌金丝边框的可怕仪式面具；一个古老网站上的密码保护论坛。',
+      initial: '一本结实的皮革装订书',
+      allowEmpty: true,
+      okLabel: '创建日记',
+      onOk: (v) => store.moveMemoryToDiary(memoryId, v.trim() || undefined),
+    }
     return
   }
   const inDiaryCount = s.value.memories.filter(x => x.inDiary).length
   if (inDiaryCount >= 4) {
-    window.alert('日记已经写满 4 段记忆，无法再移入（规则书："一本日记最多可以容纳四段吸血鬼的记忆"）。\n你可以：① 改为遗忘这段记忆；② 到资源页「失去」现有日记（其中包含的记忆将一并划掉），之后再另立一本新日记。')
+    confirmAsk.value = {
+      okOnly: true,
+      text: '日记已经写满 4 段记忆，无法再移入（规则书："一本日记最多可以容纳四段吸血鬼的记忆"）。\n你可以：① 改为遗忘这段记忆；② 到资源页「失去」现有日记（其中包含的记忆将一并划掉），之后再另立一本新日记。',
+    }
     return
   }
   store.moveMemoryToDiary(memoryId)
 }
 
 function endGameNow() {
-  if (window.confirm('确认在此终结旅程吗？之后可在"历史"中回顾这段千年。')) {
-    store.endGame(`你选择在此终结自己的千年——${s.value.name}的故事就此合上。`)
+  confirmAsk.value = {
+    text: '确认在此终结旅程吗？之后可在"历史"中回顾这段千年。',
+    onOk: () => store.endGame(`你选择在此终结自己的千年——${s.value.name}的故事就此合上。`),
   }
 }
 
@@ -284,6 +311,7 @@ function completeTurn() {
         v-if="!s.finished"
         :entry-index="store.currentEntryIndex"
         @goto-tab="gotoPanelTab"
+        @progress="effectStatus = $event"
       />
 
       <!-- 岁月流逝：凡人会老去（规则书"角色"节） -->
@@ -300,7 +328,7 @@ function completeTurn() {
           </div>
         </div>
         <div class="mt-3">
-          <button class="btn btn-ghost text-xs opacity-60" @click="showAging = false">岁月暂缓（忽略）</button>
+          <button class="btn btn-ghost text-xs opacity-60" @click="postponeAging">岁月暂缓（忽略）</button>
         </div>
       </div>
 
@@ -379,6 +407,14 @@ function completeTurn() {
           完成这一回合，掷出命运之骰
         </button>
 
+        <!-- P3-2：存在未处理效果时给出轻提示（引导而非强制） -->
+        <p
+          v-if="!s.finished && effectStatus.total > 0 && effectStatus.done < effectStatus.total"
+          class="mt-2 text-xs opacity-70 text-center italic"
+        >
+          ⚠ 还有 {{ effectStatus.total - effectStatus.done }} 项效果未标记处理——可返回处理，或直接完成本回合
+        </p>
+
         <!-- 回合后信息 -->
         <p v-if="lastMessage" class="mt-4 text-sm opacity-80 text-center italic">{{ lastMessage }}</p>
       </div>
@@ -393,7 +429,7 @@ function completeTurn() {
 
     <!-- 右列：特征面板（桌面端） -->
     <div class="lg:sticky lg:top-6 min-w-0 hidden lg:block">
-      <TraitPanel ref="traitPanelRef" />
+      <TraitPanel ref="traitPanelRef" :lock-memory-ops="placement.mustResolve && !bypassExperience" />
     </div>
   </div>
 
@@ -418,9 +454,21 @@ function completeTurn() {
           <button class="btn btn-ghost text-xs" @click="drawerOpen = false">收起 ▾</button>
         </div>
         <div class="p-3 pb-8">
-          <TraitPanel :initial-tab="drawerTab" />
+          <TraitPanel :initial-tab="drawerTab" :lock-memory-ops="placement.mustResolve && !bypassExperience" />
         </div>
       </div>
     </div>
   </Teleport>
+
+  <!-- P2-2：应用内输入/确认弹层（替代 window.prompt / confirm / alert） -->
+  <PromptDialog
+    :state="ask"
+    @ok="(v: string) => { ask?.onOk(v); ask = null }"
+    @cancel="ask = null"
+  />
+  <ConfirmDialog
+    :state="confirmAsk"
+    @ok="() => { confirmAsk?.onOk?.(); confirmAsk = null }"
+    @cancel="confirmAsk = null"
+  />
 </template>

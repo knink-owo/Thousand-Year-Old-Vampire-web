@@ -49,6 +49,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     started: false,
     finished: false,
     moves: 0,
+    effectProgress: {},
     ...overrides,
   };
 }

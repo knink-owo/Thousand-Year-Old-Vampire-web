@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useGameStore } from '../stores/game'
+import ConfirmDialog, { type ConfirmState } from '../components/ConfirmDialog.vue'
 
 const store = useGameStore()
 
 const hasOngoing = computed(() => !!store.state && !store.state.finished)
 const totalTales = computed(() => store.records.length)
+
+// ---- P2-2：应用内确认弹层（替代 window.confirm） ----
+const confirmAsk = ref<ConfirmState | null>(null)
 
 const emit = defineEmits<{
   (e: 'navigate', to: 'create' | 'tutorial' | 'history'): void
@@ -18,8 +22,9 @@ function continueJourney() {
 function abandonJourney() {
   const s = store.state
   if (!s) return
-  if (window.confirm(`确定要放弃这段旅程吗？「${s.name}」的存档与历史记录将被删除，无法恢复。`)) {
-    store.abandonCurrent()
+  confirmAsk.value = {
+    text: `确定要放弃这段旅程吗？「${s.name}」的存档与历史记录将被删除，无法恢复。`,
+    onOk: () => store.abandonCurrent(),
   }
 }
 </script>
@@ -65,5 +70,12 @@ function abandonJourney() {
         <span v-if="totalTales" class="ml-2 text-xs opacity-60">（{{ totalTales }} 段往事）</span>
       </button>
     </div>
+
+    <!-- P2-2：应用内确认弹层 -->
+    <ConfirmDialog
+      :state="confirmAsk"
+      @ok="() => { confirmAsk?.onOk?.(); confirmAsk = null }"
+      @cancel="confirmAsk = null"
+    />
   </div>
 </template>

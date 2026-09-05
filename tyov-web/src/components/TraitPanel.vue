@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useGameStore } from '../stores/game'
+import PromptDialog, { type PromptState } from './PromptDialog.vue'
+import ConfirmDialog, { type ConfirmState } from './ConfirmDialog.vue'
 
 const store = useGameStore()
 const s = computed(() => store.state!)
-const props = defineProps<{ initialTab?: 'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary' }>()
+const props = defineProps<{
+  initialTab?: 'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary'
+  /** P2-1：记忆槽已满（mustResolve）时禁用在面板内直接处置记忆，统一由回答面板引导 */
+  lockMemoryOps?: boolean
+}>()
 const tab = ref<'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary'>(props.initialTab ?? 'memory')
+
+// ---- P2-2：应用内输入/确认弹层（替代 window.prompt / window.confirm / window.alert） ----
+const ask = ref<PromptState | null>(null)
+const confirmAsk = ref<ConfirmState | null>(null)
 
 // ---- 二次确认（破坏性操作） ----
 type ConfirmKind = 'forget' | 'loseSkill' | 'loseResource' | 'kill' | 'removeMark'
@@ -83,7 +93,7 @@ function addMemory() {
   if (!t) return
   const res = store.addExperience(null, t, s.value.currentPromptNumber, 1)
   if (res.status === 'mustForget') {
-    window.alert('记忆已满：请先遗忘一段记忆或将一段记忆移入日记，再安放新的经历。')
+    confirmAsk.value = { okOnly: true, text: '记忆已满：请先遗忘一段记忆或将一段记忆移入日记，再安放新的经历。' }
     return
   }
   newMemoryText.value = ''
@@ -102,52 +112,69 @@ function saveEditEx() {
 }
 
 function removeExp(exp: { id: string; text: string }) {
-  if (window.confirm(`确定要抹去这段经历吗？\n“${exp.text.slice(0, 40)}${exp.text.length > 40 ? '…' : ''}”`)) {
-    store.removeExperience(exp.id)
+  confirmAsk.value = {
+    text: `确定要抹去这段经历吗？\n“${exp.text.slice(0, 40)}${exp.text.length > 40 ? '…' : ''}”`,
+    onOk: () => store.removeExperience(exp.id),
   }
 }
 
 function randomLoseExp() {
-  if (window.confirm('随机划去一段经历（提示51第1条目：从记忆列表中间的记忆里随机划去一段经历，划线保留可读）？')) {
-    store.randomLoseExperience()
+  confirmAsk.value = {
+    text: '随机划去一段经历（提示51第1条目：从记忆列表中间的记忆里随机划去一段经历，划线保留可读）？',
+    onOk: () => store.randomLoseExperience(),
   }
 }
 
 function changeSlot(delta: number) {
   const msg = delta > 0 ? '增加一个记忆槽（提示52第1条目）？' : '永久失去一个记忆槽（提示22/41）？此操作不可撤销。'
-  if (window.confirm(msg)) store.changeMemorySlots(delta)
+  confirmAsk.value = { text: msg, onOk: () => store.changeMemorySlots(delta) }
 }
 
 function stabilizeMem(memoryId: string) {
-  if (window.confirm('为这段记忆画上星号（提示33第2条目）？它将永不丢失、不再更改，也不再占用记忆槽。')) {
-    store.stabilizeMemory(memoryId)
+  confirmAsk.value = {
+    text: '为这段记忆画上星号（提示33第2条目）？它将永不丢失、不再更改，也不再占用记忆槽。',
+    onOk: () => store.stabilizeMemory(memoryId),
   }
 }
 
 function nameMemory(m: { id: string; title?: string }) {
-  const n = window.prompt('为这段记忆命名（规则书："每个记忆应通过一个主题来定义"）。留空可移除名字：', m.title ?? '')
-  if (n !== null) store.renameMemory(m.id, n.trim())
+  ask.value = {
+    title: '为记忆命名',
+    text: '规则书："每个记忆应通过一个主题来定义"。留空可移除名字。',
+    initial: m.title ?? '',
+    allowEmpty: true,
+    okLabel: '命名',
+    onOk: (v) => store.renameMemory(m.id, v.trim()),
+  }
 }
 
 const DIARY_EXAMPLES = '一本结实的皮革装订书；一组饰有象形文字图案的罐子；镶嵌金丝边框的可怕仪式面具；一个古老网站上的密码保护论坛'
 
 function moveToDiary(memoryId: string) {
   if (!store.state!.diaryResourceId) {
-    const n = window.prompt(`创建你的日记（规则书："请给它一个简短的描述"）。例如：${DIARY_EXAMPLES}`, '一本结实的皮革装订书')
-    if (n === null) return
-    store.moveMemoryToDiary(memoryId, n.trim() || undefined)
+    ask.value = {
+      title: '创建你的日记',
+      text: `规则书："请给它一个简短的描述"。例如：${DIARY_EXAMPLES}`,
+      initial: '一本结实的皮革装订书',
+      allowEmpty: true,
+      okLabel: '创建日记',
+      onOk: (v) => store.moveMemoryToDiary(memoryId, v.trim() || undefined),
+    }
     return
   }
   const inDiaryCount = store.state!.memories.filter(x => x.inDiary).length
   if (inDiaryCount >= 4) {
-    window.alert('日记已经写满 4 段记忆，无法再移入（规则书："一本日记最多可以容纳四段吸血鬼的记忆"）。\n你可以：① 改为遗忘这段记忆；② 到资源页「失去」现有日记（其中包含的记忆将一并划掉），之后再另立一本新日记。')
+    confirmAsk.value = {
+      okOnly: true,
+      text: '日记已经写满 4 段记忆，无法再移入（规则书："一本日记最多可以容纳四段吸血鬼的记忆"）。\n你可以：① 改为遗忘这段记忆；② 到资源页「失去」现有日记（其中包含的记忆将一并划掉），之后再另立一本新日记。',
+    }
     return
   }
   store.moveMemoryToDiary(memoryId)
 }
 
 function restoreMem(memoryId: string) {
-  if (window.confirm('恢复这段被遗忘的记忆吗？')) store.restoreMemory(memoryId)
+  confirmAsk.value = { text: '恢复这段被遗忘的记忆吗？', onOk: () => store.restoreMemory(memoryId) }
 }
 
 // 技能操作
@@ -159,13 +186,27 @@ function addSkill() {
   newSkillName.value = ''
 }
 function renameSkill(sk: { id: string; name: string; checked: boolean }) {
-  const n = window.prompt(sk.checked ? '更改这项技能（提示62第1条目）' : '重写这项未勾选的技能（提示11第2条目）', sk.name)
-  if (n?.trim()) store.rewriteSkill(sk.id, n.trim())
+  ask.value = {
+    title: sk.checked ? '更改这项技能' : '重写这项技能',
+    text: sk.checked ? '规则书（提示62第1条目）：更改任意技能。' : '规则书（提示11第2条目）：重写未勾选的技能。',
+    initial: sk.name,
+    okLabel: sk.checked ? '更改' : '重写',
+    onOk: (v) => {
+      if (v.trim()) store.rewriteSkill(sk.id, v.trim())
+    },
+  }
 }
 function skillFromMemory(mem: { id: string; title?: string; experiences: { text: string }[] }) {
   const hint = mem.title || mem.experiences[0]?.text?.slice(0, 12) || '记忆'
-  const n = window.prompt(`将这段记忆转化为技能（提示8第2条目）——记忆将被划掉。给技能命名：`, hint)
-  if (n?.trim()) store.memoryToSkill(mem.id, n.trim())
+  ask.value = {
+    title: '将一段记忆转化为技能',
+    text: '提示8第2条目、54第1条目：记忆将被划掉，不再占用记忆槽。',
+    initial: hint,
+    okLabel: '转为技能',
+    onOk: (v) => {
+      if (v.trim()) store.memoryToSkill(mem.id, v.trim())
+    },
+  }
 }
 
 // 资源操作
@@ -179,22 +220,42 @@ function addResource() {
   newResourceFixed.value = false
 }
 function degradeRes(r: { id: string; name: string }) {
-  if (window.confirm(`将「${r.name}」降级为废墟吗？（提示2第3条目）`)) store.degradeResource(r.id)
+  confirmAsk.value = { text: `将「${r.name}」降级为废墟吗？（提示2第3条目）`, onOk: () => store.degradeResource(r.id) }
 }
 function retrieveRes(r: { id: string; name: string }) {
-  if (window.confirm(`找回「${r.name}」吗？（提示65第2条目等）`)) store.retrieveResource(r.id)
+  confirmAsk.value = { text: `找回「${r.name}」吗？（提示65第2条目等）`, onOk: () => store.retrieveResource(r.id) }
 }
 function convertRes(r: { id: string; name: string }) {
-  const n = window.prompt(`将固定资源「${r.name}」转为便携现金或财宝（提示46第1条目）。给它一个新名字（可留空）：`, r.name)
-  if (n !== null) store.convertFixedResource(r.id, n.trim() || undefined)
+  ask.value = {
+    title: '固定资源转为便携财宝',
+    text: `将固定资源「${r.name}」转为便携现金或财宝（提示46第1条目）。给它一个新名字（可留空）？`,
+    initial: r.name,
+    allowEmpty: true,
+    okLabel: '转便携',
+    onOk: (v) => store.convertFixedResource(r.id, v.trim() || undefined),
+  }
 }
 function swapRes(r: { id: string; name: string }) {
-  const n = window.prompt(`用「${r.name}」换取一项新的资源（提示65第1条目）。新的资源是：`, '')
-  if (n?.trim()) store.swapResource(r.id, n.trim())
+  ask.value = {
+    title: '以旧换新',
+    text: `用「${r.name}」换取一项新的资源（提示65第1条目）。新的资源是？`,
+    initial: '',
+    okLabel: '交换',
+    onOk: (v) => {
+      if (v.trim()) store.swapResource(r.id, v.trim())
+    },
+  }
 }
 function renameDiary(r: { id: string; name: string }) {
-  const n = window.prompt('为你的日记写一段新的描述（规则书："请给它一个简短的描述"）：', r.name)
-  if (n?.trim()) store.renameResource(r.id, n.trim())
+  ask.value = {
+    title: '为日记改名',
+    text: '规则书："请给它一个简短的描述"。',
+    initial: r.name,
+    okLabel: '改名',
+    onOk: (v) => {
+      if (v.trim()) store.renameResource(r.id, v.trim())
+    },
+  }
 }
 
 // 角色操作
@@ -210,17 +271,26 @@ function addCharacter() {
   newCharImmortal.value = false
 }
 function reviveChar(c: { id: string; name: string }) {
-  if (window.confirm(`「${c.name}」不可思议地活了过来（提示48第2条目）？`)) store.reviveCharacter(c.id)
+  confirmAsk.value = { text: `「${c.name}」不可思议地活了过来（提示48第2条目）？`, onOk: () => store.reviveCharacter(c.id) }
 }
 function ghostChar(c: { id: string; name: string }) {
-  if (window.confirm(`让「${c.name}」以幽灵之身归来（提示41第3条目）？`)) store.returnGhost(c.id)
+  confirmAsk.value = { text: `让「${c.name}」以幽灵之身归来（提示41第3条目）？`, onOk: () => store.returnGhost(c.id) }
 }
 function charToRes(c: { id: string; name: string }) {
-  const n = window.prompt(`将「${c.name}」转化为一件由你供养的不死物件（提示3第3条目）。它作为资源的名称：`, c.name)
-  if (n !== null) store.characterToResource(c.id, n.trim() || undefined)
+  ask.value = {
+    title: '角色化为资源',
+    text: `将「${c.name}」转化为一件由你供养的不死物件（提示3第3条目）。它作为资源的名称是？`,
+    initial: c.name,
+    allowEmpty: true,
+    okLabel: '化为资源',
+    onOk: (v) => store.characterToResource(c.id, v.trim() || undefined),
+  }
 }
 function mortalToImmortal(c: { id: string; name: string }) {
-  if (window.confirm(`将凡人「${c.name}」转化为不朽者吗？（提示1第2条目、26第1条目等）`)) store.mortalToImmortal(c.id)
+  confirmAsk.value = {
+    text: `将凡人「${c.name}」转化为不朽者吗？（提示1第2条目、26第1条目等）`,
+    onOk: () => store.mortalToImmortal(c.id),
+  }
 }
 
 // 印记操作
@@ -232,7 +302,10 @@ function addMark() {
   newMarkName.value = ''
 }
 function crippleMarkFn(m: { id: string; name: string }) {
-  if (window.confirm(`印记「${m.name}」变为失能（提示61第3条目）？你必须寻求凡人的帮助。`)) store.crippleMark(m.id)
+  confirmAsk.value = {
+    text: `印记「${m.name}」变为失能（提示61第3条目）？你必须寻求凡人的帮助。`,
+    onOk: () => store.crippleMark(m.id),
+  }
 }
 
 // 时间格式化与截断
@@ -278,6 +351,9 @@ defineExpose({ setTab })
 
     <!-- 记忆 -->
     <div v-if="tab === 'memory'">
+      <div v-if="lockMemoryOps" class="mb-3 p-2.5 rounded border border-red-900/60 bg-red-950/20 text-xs text-red-300 leading-relaxed">
+        ⚠ 记忆槽已满——请先在回答面板的「放进哪段记忆」处<b>遗忘</b>或<b>移入日记</b>一段记忆，再来处置其余记忆。
+      </div>
       <div class="flex gap-2 mb-2">
         <input v-model="newMemoryText" class="input" placeholder="新增记忆（写入一段经历）" @keyup.enter="addMemory" />
         <button class="btn btn-gold shrink-0" @click="addMemory">写入</button>
@@ -303,11 +379,11 @@ defineExpose({ setTab })
             </span>
             <div class="flex gap-1.5 shrink-0 flex-wrap justify-end">
               <button v-if="!m.stabilized" class="text-xs px-2 py-0.5 rounded border border-amber-700/40 text-amber-200/70" title="为这段记忆命名（规则书：记忆通过主题定义）" @click="nameMemory(m)">命名</button>
-              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-amber-600/60 text-amber-200/90" title="画星号：永不丢失、不再占槽（提示33第2条目）" @click="stabilizeMem(m.id)">★恒存</button>
-              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-cyan-900/60 text-cyan-200/80" @click="moveToDiary(m.id)">入日记</button>
-              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-purple-900/60 text-purple-300/80" title="将这段记忆转化为技能（提示8第2条目、54第1条目）" @click="skillFromMemory(m)">转为技能</button>
+              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-amber-600/60 text-amber-200/90" title="画星号：永不丢失、不再占槽（提示33第2条目）" :disabled="lockMemoryOps" :class="lockMemoryOps ? 'opacity-30 cursor-not-allowed' : ''" @click="stabilizeMem(m.id)">★恒存</button>
+              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-cyan-900/60 text-cyan-200/80" :disabled="lockMemoryOps" :class="lockMemoryOps ? 'opacity-30 cursor-not-allowed' : ''" :title="lockMemoryOps ? '记忆槽已满：请在回答面板处置' : '移入日记（不再占记忆槽）'" @click="moveToDiary(m.id)">入日记</button>
+              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-purple-900/60 text-purple-300/80" title="将这段记忆转化为技能（提示8第2条目、54第1条目）" :disabled="lockMemoryOps" :class="lockMemoryOps ? 'opacity-30 cursor-not-allowed' : ''" @click="skillFromMemory(m)">转为技能</button>
               <button v-if="m.forgotten" class="text-xs px-2 py-0.5 rounded border border-emerald-900/60 text-emerald-300/80" title="恢复一段被遗忘的记忆（提示31第3条目等）" @click="restoreMem(m.id)">恢复</button>
-              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-red-900/60 text-red-300/90" @click="pendingConfirm = { kind: 'forget', id: m.id }">遗忘</button>
+              <button v-if="!m.forgotten && !m.inDiary && !m.stabilized" class="text-xs px-2 py-0.5 rounded border border-red-900/60 text-red-300/90" :disabled="lockMemoryOps" :class="lockMemoryOps ? 'opacity-30 cursor-not-allowed' : ''" :title="lockMemoryOps ? '记忆槽已满：请在回答面板处置' : ''" @click="pendingConfirm = { kind: 'forget', id: m.id }">遗忘</button>
             </div>
           </div>
           <ul class="mt-2 space-y-1 text-sm opacity-90">
@@ -484,5 +560,17 @@ defineExpose({ setTab })
         </div>
       </div>
     </Teleport>
+
+    <!-- P2-2：应用内输入/确认弹层（替代 window.prompt / confirm / alert） -->
+    <PromptDialog
+      :state="ask"
+      @ok="(v: string) => { ask?.onOk(v); ask = null }"
+      @cancel="ask = null"
+    />
+    <ConfirmDialog
+      :state="confirmAsk"
+      @ok="() => { confirmAsk?.onOk?.(); confirmAsk = null }"
+      @cancel="confirmAsk = null"
+    />
   </div>
 </template>
