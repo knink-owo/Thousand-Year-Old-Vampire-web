@@ -133,6 +133,15 @@ export const useGameStore = defineStore('game', () => {
     safeRemove(PACK_KEY);
   }
 
+  /** 放弃当前旅程：删除当前存档与对应历史摘要/快照（不可恢复）——首页"放弃旅程"使用 */
+  function abandonCurrent() {
+    const s = state.value;
+    if (!s) return;
+    removeRecord(s.id);   // 同步清理历史摘要与全量快照
+    state.value = null;
+    safeRemove(SAVE_KEY);
+  }
+
   function persist() {
     if (!state.value) return
     try {
@@ -814,7 +823,7 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     pack, state, currentPrompt, currentEntryIndex, currentEntryText, storageUsed,
-    storageWarning, clearLocalData,
+    storageWarning, clearLocalData, abandonCurrent,
     records, removeRecord, clearRecords, getRecordSnapshot,
     startGame, completeTurn, newGame,
     addExperience, forgetMemory, renameMemory, stabilizeMemory, restoreMemory,

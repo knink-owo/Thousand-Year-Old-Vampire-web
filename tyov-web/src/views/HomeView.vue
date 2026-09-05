@@ -14,6 +14,14 @@ const emit = defineEmits<{
 function continueJourney() {
   emit('navigate', 'create') // 由 App 层检测状态后直接进入 game
 }
+
+function abandonJourney() {
+  const s = store.state
+  if (!s) return
+  if (window.confirm(`确定要放弃这段旅程吗？「${s.name}」的存档与历史记录将被删除，无法恢复。`)) {
+    store.abandonCurrent()
+  }
+}
 </script>
 
 <template>
@@ -38,7 +46,10 @@ function continueJourney() {
       <p class="text-sm opacity-60 mt-1">
         已历经 {{ store.state?.moves }} 次提示 · 此刻徘徊于提示 {{ store.state?.currentPromptNumber }}
       </p>
-      <button class="btn btn-gold w-full mt-4" @click="continueJourney">继续旅程</button>
+      <div class="flex gap-3 mt-4">
+        <button class="btn flex-1" @click="abandonJourney">放弃旅程</button>
+        <button class="btn btn-gold flex-1" @click="continueJourney">继续旅程</button>
+      </div>
     </div>
 
     <!-- 主按钮 -->
