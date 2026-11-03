@@ -27,7 +27,7 @@ const bypassExperience = computed(() => {
   return entry ? entrySkipsExperience(entry) : false
 })
 
-const rollResult = ref<{ d10: number; d6: number; delta: number; to: number } | null>(null)
+const rollResult = ref<{ d10: number; d6: number; delta: number; from: number; to: number; actualTo: number } | null>(null)
 const lastMessage = ref('')
 
 // ---- P3-2：效果处理进度（EffectActions 上报） ----
@@ -38,6 +38,8 @@ const entryEffects = computed(() => store.currentPrompt?.entries[store.currentEn
 watch(
   () => [store.state?.currentPromptNumber, store.currentEntryIndex],
   () => {
+    // 进入条目即锁定终局结论（此后玩家照做效果也不会被误判为"做不到"）
+    store.syncEntryVerdict()
     refreshAging()
   },
 )
@@ -68,7 +70,11 @@ function refreshAging() {
   if (!st || st.finished) { showAging.value = false; return }
   showAging.value = livingMortals.value.length > 0 && (st.agingAcknowledgedAt ?? 0) + 4 <= st.moves
 }
-watch(() => store.state?.moves, refreshAging, { immediate: true })
+watch(() => store.state?.moves, () => {
+  // 挂载/读档时也补一次条目判定（不依赖提示是否变化）
+  store.syncEntryVerdict()
+  refreshAging()
+}, { immediate: true })
 watch(livingMortals, (lm) => {
   if (lm.length === 0) showAging.value = false
 })
@@ -236,7 +242,9 @@ function completeTurn() {
 
   // 3. 完成回合（掷骰、推进）
   const result = store.completeTurn(diary || null)
-  rollResult.value = result.roll
+  // 条目用尽时 store 会强制前往下一提示（骰子指向不作数）——以实际落点为准
+  const actualTo = s0.finished ? result.roll.to : s0.currentPromptNumber
+  rollResult.value = { ...result.roll, actualTo }
 
   if (s0.finished) {
     lastMessage.value = ''
@@ -245,12 +253,13 @@ function completeTurn() {
 
   // 4. 构造提示文案
   const roll = result.roll
-  const repeats = roll.delta === 0
 
   // 5. 生成下一轮的信息卡
-  lastMessage.value = repeats
-    ? `你再次面对同一提示——命运让你停在原地。`
-    : `骰子将你带向提示 ${roll.to}。`
+  lastMessage.value = actualTo !== roll.to
+    ? `提示${prevPrompt}的条目已全部回应——你前往提示 ${actualTo}。`
+    : roll.delta === 0
+      ? `你再次面对同一提示——命运让你停在原地。`
+      : `骰子将你带向提示 ${actualTo}。`
   // 清空输入
   experienceText.value = ''
   diaryText.value = ''
@@ -299,7 +308,13 @@ function completeTurn() {
           </div>
         </div>
         <p class="mt-4 text-sm opacity-80">
-          {{ rollResult.delta > 0 ? `向后移动 ${rollResult.delta}，前往提示 ${rollResult.to}` : rollResult.delta < 0 ? `向前移动 ${Math.abs(rollResult.delta)}，前往提示 ${rollResult.to}` : '差为 0——停留在相同的提示' }}
+          <template v-if="rollResult.actualTo !== rollResult.to">
+            {{ rollResult.delta > 0 ? `向后移动 ${rollResult.delta}` : rollResult.delta < 0 ? `向前移动 ${Math.abs(rollResult.delta)}` : '差为 0' }}
+            ——但提示 {{ rollResult.from }} 的条目已全部回应，无论骰子指向何处，都将前往提示 {{ rollResult.actualTo }}。
+          </template>
+          <template v-else>
+            {{ rollResult.delta > 0 ? `向后移动 ${rollResult.delta}，前往提示 ${rollResult.actualTo}` : rollResult.delta < 0 ? `向前移动 ${Math.abs(rollResult.delta)}，前往提示 ${rollResult.actualTo}` : '差为 0——停留在相同的提示' }}
+          </template>
         </p>
       </div>
 

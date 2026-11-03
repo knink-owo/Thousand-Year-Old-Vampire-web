@@ -8,7 +8,7 @@
  *  - 技能/资源替代规则：无法勾选技能 → 失去资源；无法失去资源 → 勾选技能；都没有 → 游戏结束
  *  - 游戏结束：无法勾选技能或失去资源时，或提示指示游戏结束
  */
-import type { GameState, Prompt, PromptPack } from '../types/game';
+import type { Effect, GameState, Prompt, PromptPack } from '../types/game';
 
 /** 掷骰结果与移动 */
 export interface MoveResult {
@@ -20,6 +20,14 @@ export interface MoveResult {
   repeats: boolean;       // delta === 0（再次遇到相同提示）
   hitFloor: boolean;      // 尝试移出 1 之前，回弹到 1
 }
+
+/** 替代规则的判定意图 */
+export type AlternativeIntent =
+  | 'checkSkill'
+  | 'loseResource'
+  | 'loseSkill'
+  | 'loseCheckedSkill'
+  | 'loseUncheckedSkill';
 
 /** 掷 D10 与 D6，计算新的提示位置 */
 export function rollMove(
@@ -98,7 +106,7 @@ export function hasLosableResource(state: GameState): boolean {
  */
 export function checkAlternative(
   state: GameState,
-  intent: 'checkSkill' | 'loseResource' | 'loseSkill' | 'loseCheckedSkill' | 'loseUncheckedSkill',
+  intent: AlternativeIntent,
 ): { outcome: 'ok' | 'alternative' | 'gameOver'; reason?: string } {
   if (intent === 'checkSkill') {
     if (hasCheckableSkill(state)) return { outcome: 'ok' };
@@ -133,6 +141,61 @@ export function entryCausesGameOver(prompt: Prompt, entryIndex: number): boolean
   const entry = prompt.entries[entryIndex - 1];
   if (!entry) return false;
   return entry.effects.some(e => e.type === 'gameOver') || entry.text.includes('游戏结束');
+}
+
+/**
+ * 条目内的"替代规则"检查：把勾选/失去技能或资源的意图，逐个对照当前状态。
+ * 任一意图无法完成且无可替代 → 游戏结束。
+ */
+export function alternativeOutcomeForEntry(
+  state: GameState,
+  entry: { effects: Effect[] },
+): { gameOver: boolean; reason?: string } {
+  for (const e of entry.effects) {
+    let intent: AlternativeIntent | null = null;
+    if (e.type === 'checkSkill' || e.type === 'checkSkill2' || e.type === 'checkSkill3') {
+      intent = 'checkSkill';
+    } else if (e.type === 'loseSkill') {
+      intent = 'loseSkill';
+    } else if (e.type === 'loseCheckedSkill') {
+      intent = 'loseCheckedSkill';
+    } else if (e.type === 'loseUncheckedSkill') {
+      intent = 'loseUncheckedSkill';
+    } else if (
+      e.type === 'loseResource' || e.type === 'loseResource2' || e.type === 'loseResource3' ||
+      e.type === 'loseAllFixedResources' || e.type === 'loseFixedResource'
+    ) {
+      intent = 'loseResource';
+    }
+    if (intent) {
+      const res = checkAlternative(state, intent);
+      if (res.outcome === 'gameOver') return { gameOver: true, reason: res.reason };
+    }
+  }
+  return { gameOver: false };
+}
+
+/** 条目键：`提示号:条目号`（用于把"进入条目时"的判定结论持久化） */
+export function entryKey(promptNumber: number, entryIndex: number): string {
+  return `${promptNumber}:${entryIndex}`;
+}
+
+/**
+ * 条目终局判定：**必须在玩家刚读到该条目时（执行效果之前）调用**。
+ * 规则书："当你在需要勾选技能或失去资源时无法做到"——判定基准是读到的瞬间，
+ * 而不是玩家照做之后（那时技能已勾选、资源已失去，会得出相反的结论）。
+ */
+export function entryVerdict(
+  state: GameState,
+  prompt: Prompt,
+  entryIndex: number,
+): { gameOver: boolean; reason?: string } {
+  if (entryCausesGameOver(prompt, entryIndex)) {
+    return { gameOver: true, reason: '此提示宣告终结' };
+  }
+  const entry = prompt.entries[entryIndex - 1];
+  if (!entry) return { gameOver: false };
+  return alternativeOutcomeForEntry(state, entry);
 }
 
 /**

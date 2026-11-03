@@ -3,12 +3,12 @@
  */
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import type { GameState, PromptPack, DiaryEntry, Memory, Experience, Effect, Resource, GameRecord } from '../types/game';
+import type { GameState, PromptPack, DiaryEntry, Memory, Experience, Resource, GameRecord } from '../types/game';
 import { officialPack, findPrompt } from '../engine/packLoader';
 import {
-  rollMove, advancePrompt, checkAlternative, entryCausesGameOver, visitsOf,
+  rollMove, advancePrompt, entryVerdict, entryKey, visitsOf,
   entryIndexFor, placeExperienceDecision,
-  DEFAULT_MEMORY_SLOTS, MAX_EXPERIENCES_PER_MEMORY, MAX_MEMORIES_PER_DIARY, usedMemorySlots,
+  DEFAULT_MEMORY_SLOTS, MAX_EXPERIENCES_PER_MEMORY, MAX_MEMORIES_PER_DIARY,
 } from '../engine/core';
 
 const SAVE_KEY = 'tyov:save:v1';
@@ -117,7 +117,6 @@ export const useGameStore = defineStore('game', () => {
     return entryIndexFor(p, visitsOf(s, p.number));
   });
   const currentEntryText = computed(() => currentPrompt.value?.entries[currentEntryIndex.value - 1]?.text ?? '');
-  const storageUsed = computed(() => usedMemorySlots(state.value!));
 
   // ---------- 存档 ----------
   // 存储不可用/异常时的警告（UI 顶部横幅读取）
@@ -290,12 +289,41 @@ export const useGameStore = defineStore('game', () => {
     persist();
   }
 
+  /**
+   * 锁定当前条目的终局结论（`提示号:条目号` 键控）。
+   * 规则基准是"读到提示的那一刻"：玩家随后照做（勾掉最后一个技能、失去最后一项资源）
+   * 不应反过来把自己判死，因此结论一旦锁定便不再随状态变化重算。
+   */
+  function lockEntryVerdict(): { gameOver: boolean; reason?: string } {
+    const s = state.value;
+    const p = currentPrompt.value;
+    if (!s || !p) return { gameOver: false };
+    const idx = currentEntryIndex.value;
+    const key = entryKey(p.number, idx);
+    if (s.entryVerdict?.key === key) {
+      return { gameOver: s.entryVerdict.gameOver, reason: s.entryVerdict.reason };
+    }
+    const v = entryVerdict(s, p, idx);
+    s.entryVerdict = { key, gameOver: v.gameOver, reason: v.reason };
+    persist();
+    return v;
+  }
+
+  /** 进入新提示/新条目时调用（由 GameView 监听提示与条目变化触发） */
+  function syncEntryVerdict(): void {
+    const s = state.value;
+    if (!s || s.finished) return;
+    lockEntryVerdict();
+  }
+
   /** 点击"回答提示完成"：写入经历/日记 → 推进提示（根据最终掷骰） */
-  function completeTurn(diaryContent: string | null): { roll: { d10: number; d6: number; delta: number; to: number }; nextNumber: number; entryIndex: number } {
+  function completeTurn(diaryContent: string | null): { roll: { d10: number; d6: number; delta: number; from: number; to: number }; nextNumber: number; entryIndex: number } {
     const s = state.value;
     const p = currentPrompt.value;
     if (!s || !p) throw new Error('没有进行中的游戏');
-    const epIdx = visitsOf(s, p.number) + 1; // 本轮条目 1..n
+    // 终局结论取自"进入条目时"锁定的结果，绝不在效果执行后用新状态复判
+    const verdict = lockEntryVerdict();
+    const epIdx = currentEntryIndex.value; // 本轮条目 1..n（已按条目数收敛）
     const entry = p.entries[epIdx - 1];
     if (!entry) throw new Error('提示条目缺失');
 
@@ -321,7 +349,7 @@ export const useGameStore = defineStore('game', () => {
     s.promptVisits[p.number] = adv.newVisits;
     s.moves += 1;
 
-    if (entryCausesGameOver(p, epIdx) || checkAlternativeIfNeeded(s, entry)) {
+    if (verdict.gameOver) {
       s.finished = true;
       s.finishReason = `你的故事到此为止——${entry.text.length > 50 ? entry.text.slice(0, 50) + '…' : entry.text}`;
       s.finishedAt = Date.now();
@@ -340,23 +368,6 @@ export const useGameStore = defineStore('game', () => {
     }
     persist();
     return { roll, nextNumber: adv.nextNumber, entryIndex: epIdx };
-  }
-
-  /** 若条目效果含勾选技能/失去资源/失去技能，做替代检查；任一无法完成即游戏结束 */
-  function checkAlternativeIfNeeded(s: GameState, entry: { effects: Effect[] }): boolean {
-    for (const e of entry.effects) {
-      if (e.type === 'checkSkill' || e.type === 'checkSkill2' || e.type === 'checkSkill3') {
-        if (checkAlternative(s, 'checkSkill').outcome === 'gameOver') return true;
-      }
-      if (e.type === 'loseSkill' || e.type === 'loseCheckedSkill' || e.type === 'loseUncheckedSkill') {
-        const intent = e.type === 'loseCheckedSkill' ? 'loseCheckedSkill' : e.type === 'loseUncheckedSkill' ? 'loseUncheckedSkill' : 'loseSkill';
-        if (checkAlternative(s, intent).outcome === 'gameOver') return true;
-      }
-      if (e.type === 'loseResource' || e.type === 'loseResource2' || e.type === 'loseResource3' || e.type === 'loseAllFixedResources' || e.type === 'loseFixedResource') {
-        if (checkAlternative(s, 'loseResource').outcome === 'gameOver') return true;
-      }
-    }
-    return false;
   }
 
   // ---------- 特征操作（均由 UI 调用，执行后自动存档） ----------
@@ -831,10 +842,10 @@ export const useGameStore = defineStore('game', () => {
   }
 
   return {
-    pack, state, currentPrompt, currentEntryIndex, currentEntryText, storageUsed,
+    pack, state, currentPrompt, currentEntryIndex, currentEntryText,
     storageWarning, clearLocalData, abandonCurrent,
     records, removeRecord, clearRecords, getRecordSnapshot,
-    startGame, completeTurn, newGame,
+    startGame, completeTurn, newGame, syncEntryVerdict,
     addExperience, forgetMemory, renameMemory, stabilizeMemory, restoreMemory,
     removeExperience, editExperience, randomLoseExperience, restoreExperience, changeMemorySlots,
     moveMemoryToDiary,

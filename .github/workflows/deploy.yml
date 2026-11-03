@@ -33,6 +33,10 @@ jobs:
         run: npm ci
         working-directory: tyov-web
 
+      - name: Unit tests (engine + store)
+        run: npm test
+        working-directory: tyov-web
+
       - name: Type-check & build (with repo subpath base)
         # GitHub Pages 子路径部署：--base=/仓库名/ 保证资源路径正确
         run: npm run build -- --base=/${{ github.event.repository.name }}/

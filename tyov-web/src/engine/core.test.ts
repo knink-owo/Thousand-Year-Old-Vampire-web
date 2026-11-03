@@ -5,6 +5,7 @@ import {
   advancePrompt,
   checkAlternative,
   entryCausesGameOver,
+  entryVerdict,
   entrySkipsExperience,
   placeExperienceDecision,
   usedMemorySlots,
@@ -244,6 +245,28 @@ describe('placeExperienceDecision', () => {
     const d = placeExperienceDecision(state);
     expect(d.appendable).toEqual([]);
     expect(d.canCreateNew).toBe(true);
+  });
+});
+
+describe('entryVerdict', () => {
+  const prompt: Prompt = {
+    number: 7,
+    entries: [{ text: '勾选一项技能。', effects: [{ type: 'checkSkill' }] }],
+  };
+
+  it('判定基准是"读到条目的那一刻"：有可勾技能时不为终局', () => {
+    const state = makeState({ skills: [{ id: 'k1', name: '观察', checked: false, lost: false }] });
+    expect(entryVerdict(state, prompt, 1)).toEqual({ gameOver: false });
+  });
+
+  it('读到时已无可勾技能且无资源 → 终局', () => {
+    const state = makeState();
+    expect(entryVerdict(state, prompt, 1).gameOver).toBe(true);
+  });
+
+  it('提示文本/效果宣告终结时优先判定终局', () => {
+    const endPrompt: Prompt = { number: 80, entries: [{ text: '一切归于寂静。', effects: [{ type: 'gameOver' }] }] };
+    expect(entryVerdict(makeState({ skills: [{ id: 'k1', name: 'x', checked: false, lost: false }] }), endPrompt, 1).gameOver).toBe(true);
   });
 });
 

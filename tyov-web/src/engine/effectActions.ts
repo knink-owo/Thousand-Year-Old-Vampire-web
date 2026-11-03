@@ -1,5 +1,5 @@
 /**
- * 效果执行引导：把结构化 Effect 归类为四种可交互的处理模式。
+ * 效果执行引导：把结构化 Effect 归类为五种可交互的处理模式。
  * 纯逻辑层（无 Vue/store 依赖），供 EffectActions.vue 渲染交互、单测验证。
  *
  * 定位：引导而非强制——游戏保留玩家的自由裁量权，
@@ -116,7 +116,8 @@ const spec: Record<string, EffectActionSpec> = {
   changeAllegiance: { mode: 'manual', manualTab: 'character', hint: '敌人变朋友 / 朋友变敌人（角色面板调整）' },
 
   // ---------- 特殊 ----------
-  // dreamWorld：GameView 有专属"梦境之地"操作区，效果卡不重复引导
+  // dreamWorld：GameView 有专属"梦境之地"操作区，效果卡只做告知，不重复引导
+  dreamWorld: { mode: 'read', hint: '在下方「梦境之地」操作区中决定是否踏入' },
   gameOver: { mode: 'read', hint: '此提示宣告终结' },
   note: { mode: 'read' },
 }

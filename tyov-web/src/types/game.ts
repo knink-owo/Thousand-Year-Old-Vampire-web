@@ -215,6 +215,12 @@ export interface GameState {
 
   /** 效果执行进度（持久化）：`提示号:条目号:效果下标` → 已完成次数；刷新/重进不丢失，避免重复执行 */
   effectProgress: Record<string, number>;
+  /**
+   * 当前条目的终局判定结论（进入条目时锁定，`key` = `提示号:条目号`）。
+   * 规则要求"在被指示勾选技能/失去资源的那一刻无法做到"才结束游戏；
+   * 若在回合提交时用玩家已执行完效果的状态重新判定，会把"照做"误判成"做不到"。
+   */
+  entryVerdict?: { key: string; gameOver: boolean; reason?: string };
   /** 岁月流逝：上次玩家对"凡人老去"作出响应（执行或暂缓）时的 moves；`moves - 该值 >= 4` 时补弹老化提醒 */
   agingAcknowledgedAt?: number;
 }
