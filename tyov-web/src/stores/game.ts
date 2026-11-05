@@ -6,6 +6,9 @@ import { computed, ref } from 'vue';
 import type { GameState, PromptPack, DiaryEntry, Memory, Experience, Resource, GameRecord } from '../types/game';
 import { officialPack, findPrompt } from '../engine/packLoader';
 import {
+  isFileProtocol, supportsFileBackup, bindBackupFile, writeBackup, getBackupName, onBackupChange,
+} from '../engine/fileBackup';
+import {
   rollMove, advancePrompt, entryVerdict, entryKey, visitsOf,
   entryIndexFor, placeExperienceDecision,
   DEFAULT_MEMORY_SLOTS, MAX_EXPERIENCES_PER_MEMORY, MAX_MEMORIES_PER_DIARY,
@@ -122,6 +125,20 @@ export const useGameStore = defineStore('game', () => {
   // 存储不可用/异常时的警告（UI 顶部横幅读取）
   const storageWarning = ref<string>('')
 
+  // ---------- 单文件（file://）模式 ----------
+  // file:// 下 localStorage 可能不稳定，提供"绑定本地备份文件"的替代持久化方案
+  const isFileMode = ref(isFileProtocol())
+  const backupSupported = supportsFileBackup()
+  const backupFileName = ref(getBackupName())
+  onBackupChange((name) => { backupFileName.value = name })
+
+  /** 绑定一个本地备份文件，并把当前存档立即写入其中 */
+  async function bindBackup(): Promise<boolean> {
+    const ok = await bindBackupFile()
+    if (ok && state.value) await writeBackup(JSON.stringify(state.value))
+    return ok
+  }
+
   /** 清除本工具的全部本地数据（存档/历史/快照/提示包）——供"抹去一切记录"使用 */
   function clearLocalData() {
     records.value = [];
@@ -146,7 +163,10 @@ export const useGameStore = defineStore('game', () => {
     if (!state.value) return
     try {
       state.value.updatedAt = Date.now();
-      const ok = safeSet(SAVE_KEY, JSON.stringify(state.value));
+      const json = JSON.stringify(state.value);
+      const ok = safeSet(SAVE_KEY, json);
+      // 已绑定备份文件时，额外静默写入（单文件 file:// 场景的可靠持久化）
+      void writeBackup(json);
       if (!ok) {
         storageWarning.value = '本地存储不可用（隐私模式或存储已满）——进度无法自动保存，请尽快「导出存档 JSON」备份，你的游戏仍可继续。';
       }
@@ -844,6 +864,7 @@ export const useGameStore = defineStore('game', () => {
   return {
     pack, state, currentPrompt, currentEntryIndex, currentEntryText,
     storageWarning, clearLocalData, abandonCurrent,
+    isFileMode, backupSupported, backupFileName, bindBackup,
     records, removeRecord, clearRecords, getRecordSnapshot,
     startGame, completeTurn, newGame, syncEntryVerdict,
     addExperience, forgetMemory, renameMemory, stabilizeMemory, restoreMemory,

@@ -6,18 +6,20 @@ wiki_tyov_raw.txt
 # ============ 构建与依赖 ============
 node_modules/
 dist/
+dist-singlefile/
 *.local
 
 # ============ 临时文件 ============
 .tmp/
 *.log
 .DS_Store
+.workbuddy/
 
 # ============ 工作区辅助（仅保留脚本，不提交数据产物） ============
 src-data/
-!src-data/.gitkeep
 
-# 调试产物与截图
+# 调试产物、截图与一次性提交信息草稿
 .tools/*.png
 .tools/rt_save.json
 .tools/debug_blocks.txt
+.tools/commit_message*.txt

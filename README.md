@@ -98,13 +98,23 @@ npm run preview    # 本地预览生产版
 | 命令 | 说明 |
 |---|---|
 | `npm run dev` | 开发服务器（热更新） |
-| `npm run build` | 类型检查 + 生产构建（含 PWA） |
+| `npm run build` | 类型检查 + 生产构建（含 PWA），输出 `dist/` |
+| `npm run build:singlefile` | 类型检查 + 构建自包含单文件，输出 `dist-singlefile/index.html` |
+| `npm run build:all` | 同时构建上述两个版本 |
 | `npm run preview` | 预览生产构建 |
 | `npm test` | 运行单元测试 |
 
 ### 离线安装（PWA）
 
 生产部署后（或 `npm run preview`），可通过浏览器地址栏的**安装图标**将本工具"安装"到桌面/主屏幕，之后可离线游玩。
+
+### 单文件离线版（可双击运行）
+
+仓库根目录的 `千年吸血鬼-单文件版.html` 是一个**自包含产物**：JS、CSS 与图标全部内联，双击即可用浏览器打开，不需要 Node.js、本地服务器或网络，适合拷到 U 盘或直接发给别人离线游玩。
+
+- 重新生成：`cd tyov-web && npm run build:singlefile`，产物为 `tyov-web/dist-singlefile/index.html`（构建配置见 `tyov-web/vite.config.singlefile.ts`）
+- 与在线版的区别：单文件版不启用 PWA（无 Service Worker、不能"安装"到桌面），`base` 设为 `./`，favicon 内联为 data URI，因此 `file://` 下也能正常加载
+- ⚠️ **存档注意**：`file://` 页面属于空源，浏览器对 localStorage 的处理不稳定，且可能与其他本地页面共用同一键。Chromium 系（Chrome / Edge）可点击页面顶部提示条的「绑定自动备份文件」，此后每次存档都会静默写一份 `千年吸血鬼存档.tyov.json`；文件句柄无法持久化，**每次重新打开都要重新绑定**。Firefox / Safari 不支持该 API，请定期用「导出存档 JSON」手动备份。
 
 ### 部署到 GitHub Pages
 
@@ -125,7 +135,7 @@ npm run preview    # 本地预览生产版
 
 ## 🛠️ 技术栈
 
-Vue 3 · TypeScript · Vite · Pinia · Tailwind CSS · vite-plugin-pwa（离线可用）· Vitest
+Vue 3 · TypeScript · Vite · Pinia · Tailwind CSS · vite-plugin-pwa（离线可用）· vite-plugin-singlefile（单文件离线版）· Vitest
 
 使用 deepseek-v4-flash 在 deepseek harness 进行 vibe coding
 开发细节见 [开发文档.md](./开发文档.md)。
