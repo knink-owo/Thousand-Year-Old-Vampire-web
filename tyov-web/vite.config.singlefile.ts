@@ -32,11 +32,29 @@ function inlineFavicon(): Plugin {
   }
 }
 
+/**
+ * 在产物头部写入版本与构建日期：用于识别仓库里的单文件成品是否已过期。
+ */
+function stampVersion(): Plugin {
+  return {
+    name: 'tyov-stamp-version',
+    transformIndexHtml(html) {
+      try {
+        const pkg = JSON.parse(readFileSync(resolve(rootDir, 'package.json'), 'utf8')) as { version?: string }
+        const stamp = new Date().toISOString().slice(0, 10)
+        return `<!-- tyov-web v${pkg.version ?? '0.0.0'} · built ${stamp} -->\n${html}`
+      } catch {
+        return html
+      }
+    },
+  }
+}
+
 export default defineConfig({
   base: './',
   // public/ 仅在在线版使用（PWA 图标等）；单文件版把 favicon 内联，无需复制
   publicDir: false,
-  plugins: [vue(), tailwindcss(), inlineFavicon(), viteSingleFile()],
+  plugins: [vue(), tailwindcss(), inlineFavicon(), stampVersion(), viteSingleFile()],
   build: {
     outDir: 'dist-singlefile',
     emptyOutDir: true,

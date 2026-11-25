@@ -1,0 +1,51 @@
+# 推送 v* 标签时构建并发布两个发行产物：单文件离线版 + 在线版 dist
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tyov-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: tyov-web
+
+      - name: Lint & unit tests
+        run: |
+          npm run lint
+          npm test
+        working-directory: tyov-web
+
+      - name: Build (PWA + single file)
+        run: npm run build:all
+        working-directory: tyov-web
+
+      - name: Package artifacts
+        run: |
+          cp tyov-web/dist-singlefile/index.html "千年吸血鬼-单文件版.html"
+          cd tyov-web && zip -r ../tyov-web-dist.zip dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            千年吸血鬼-单文件版.html
+            tyov-web-dist.zip
+          generate_release_notes: true
