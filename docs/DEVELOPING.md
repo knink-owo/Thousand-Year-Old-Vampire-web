@@ -53,6 +53,21 @@ python tools/e2e/live.py       # 线上部署冒烟
 - UI 文案使用"千年叙事体"：第二人称、动词按钮、意象化状态语
 - 不做网络请求；所有数据留在浏览器
 
+## 可选统计（Umami）
+
+默认**不发送任何请求**。需要统计时，在 `tyov-web/.env.production`（或 CI 环境变量）中同时设置两个变量：
+
+```bash
+VITE_UMAMI_SRC=https://你的-umami/script.js      # 自托管；或 https://cloud.umami.is/script.js
+VITE_UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx
+```
+
+构建时才会把 `<script data-do-not-track>` 注入 `index.html`；未设置则产物里没有该标签。单文件离线版不包含此插件，且 `file://` 下 `analytics.ts` 强制禁用。
+
+- 只上报视图切换事件 `view`（home / create / game / finish / history / review / tutorial）
+- 不上报任何游戏内容、存档数据或可识别个人的信息
+- 需要自定义事件时用 `trackEvent(name, data)`，`data` 里同样不要放游戏内容
+
 ## 发布
 
 1. 更新 `CHANGELOG.md` 与 `tyov-web/package.json` 的版本号

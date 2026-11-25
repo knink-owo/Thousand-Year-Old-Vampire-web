@@ -91,7 +91,7 @@ const turn = createTurnActions(ctx)         // 内部回注 ctx.lockVerdict / ct
 | `tyov:history:full:v1` | 完结快照（仅完结时写入，配额不足从最旧丢弃） |
 | `tyov:pack:v1` | 自定义提示包 |
 
-所有读写经 `safeGet/safeSet/safeRemove`；失败不中断游戏，只置 `storageWarning`。数据只在本地，无任何网络外发。
+所有读写经 `safeGet/safeSet/safeRemove`；失败不中断游戏，只置 `storageWarning`。数据只在本地，**默认没有任何网络外发**；仅当部署方配置 Umami 时，才会向该实例发送匿名视图统计（`view` 事件，不含存档内容），见 [DEVELOPING.md](DEVELOPING.md)。
 
 ## 构建
 

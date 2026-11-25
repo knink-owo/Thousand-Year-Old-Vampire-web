@@ -8,6 +8,7 @@ import FinishView from './views/FinishView.vue'
 import TutorialView from './views/TutorialView.vue'
 import HistoryView from './views/HistoryView.vue'
 import ReviewView from './views/ReviewView.vue'
+import { trackView } from './analytics'
 
 const store = useGameStore()
 const view = ref<'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'history' | 'review'>('home')
@@ -43,6 +44,9 @@ function navigate(to: 'home' | 'create' | 'game' | 'finish' | 'tutorial' | 'hist
 }
 
 const showNav = computed(() => view.value !== 'home')
+
+// 可选统计（默认关闭）：只上报视图切换，不含任何游戏数据
+watch(view, (v) => trackView(v), { immediate: true })
 
 /** 单文件本地模式：立即导出一份存档 JSON */
 function exportSaveNow() {
