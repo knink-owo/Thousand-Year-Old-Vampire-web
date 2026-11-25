@@ -3,9 +3,9 @@
 from playwright.sync_api import sync_playwright
 import json, os
 
-EDGE = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-URL = 'http://127.0.0.1:5199/'
-SAVE_PATH = r'D:\Projects\Thousand Year Old Vampire\.tools\rt_save.json'
+from _common import EDGE, BASE_URL as URL
+from pathlib import Path
+SAVE_PATH = str(Path(__file__).resolve().parent / 'rt_save.json')
 
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=EDGE, headless=True)

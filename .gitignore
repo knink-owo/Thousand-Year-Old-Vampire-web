@@ -19,7 +19,7 @@ dist-singlefile/
 src-data/
 
 # 调试产物、截图与一次性提交信息草稿
-.tools/*.png
-.tools/rt_save.json
-.tools/debug_blocks.txt
-.tools/commit_message*.txt
+tools/**/*.png
+tools/**/rt_save.json
+tools/**/debug_blocks.txt
+tools/commit_message*.txt

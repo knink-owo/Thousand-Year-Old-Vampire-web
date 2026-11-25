@@ -2,8 +2,7 @@
 """E2E on live GitHub Pages deployment"""
 from playwright.sync_api import sync_playwright
 
-EDGE = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-URL = 'https://knink-owo.github.io/tyov-vampire/'
+from _common import EDGE, LIVE_URL as URL
 
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=EDGE, headless=True, proxy={'server': 'http://127.0.0.1:7890'} if True else None)

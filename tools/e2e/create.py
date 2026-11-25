@@ -3,8 +3,7 @@
 from playwright.sync_api import sync_playwright
 import json
 
-EDGE = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-URL = 'http://127.0.0.1:5199/'
+from _common import EDGE, BASE_URL as URL
 
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=EDGE, headless=True)
