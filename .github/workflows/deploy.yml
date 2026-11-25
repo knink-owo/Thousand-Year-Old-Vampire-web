@@ -43,7 +43,17 @@ jobs:
 
       - name: Type-check & build (with repo subpath base)
         # GitHub Pages 子路径部署：--base=/仓库名/ 保证资源路径正确
+        # 可选统计：在仓库 Settings → Variables 配置后才会注入 Umami 脚本
+        env:
+          VITE_UMAMI_SRC: ${{ vars.VITE_UMAMI_SRC }}
+          VITE_UMAMI_WEBSITE_ID: ${{ vars.VITE_UMAMI_WEBSITE_ID }}
         run: npm run build -- --base=/${{ github.event.repository.name }}/
+        working-directory: tyov-web
+
+      - name: Verify analytics injection
+        # 配了 ID 却没注入成功 → 直接失败，避免"以为接了其实没接"
+        if: vars.VITE_UMAMI_WEBSITE_ID != ''
+        run: grep -q "data-website-id" dist/index.html
         working-directory: tyov-web
 
       - name: Configure Pages

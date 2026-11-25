@@ -34,6 +34,9 @@ jobs:
         working-directory: tyov-web
 
       - name: Build (PWA + single file)
+        env:
+          VITE_UMAMI_SRC: ${{ vars.VITE_UMAMI_SRC }}
+          VITE_UMAMI_WEBSITE_ID: ${{ vars.VITE_UMAMI_WEBSITE_ID }}
         run: npm run build:all
         working-directory: tyov-web
 

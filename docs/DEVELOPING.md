@@ -64,6 +64,15 @@ VITE_UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx
 
 构建时才会把 `<script data-do-not-track>` 注入 `index.html`；未设置则产物里没有该标签。单文件离线版不包含此插件，且 `file://` 下 `analytics.ts` 强制禁用。
 
+### 给 GitHub Pages 线上站启用
+
+1. 仓库 **Settings → Secrets and variables → Actions → Variables** 新建两条：
+   `VITE_UMAMI_SRC`（如 `https://umami.example.com/script.js`）、`VITE_UMAMI_WEBSITE_ID`
+2. Umami 后台该网站的 **Domain** 填 `knink-owo.github.io`（留空则不校验来源）
+3. 推送 `main` 即重建并部署；工作流带一步校验，配了 ID 却未注入会直接失败
+
+> 要求统计服务是 **HTTPS**：Pages 是 https，混合内容会被浏览器拦截。
+
 - 只上报视图切换事件 `view`（home / create / game / finish / history / review / tutorial）
 - 不上报任何游戏内容、存档数据或可识别个人的信息
 - 需要自定义事件时用 `trackEvent(name, data)`，`data` 里同样不要放游戏内容
