@@ -58,8 +58,8 @@ python tools/e2e/live.py       # 线上部署冒烟
 默认**不发送任何请求**。需要统计时，在 `tyov-web/.env.production`（或 CI 环境变量）中同时设置两个变量：
 
 ```bash
-VITE_UMAMI_SRC=https://你的-umami/script.js      # 自托管；或 https://cloud.umami.is/script.js
-VITE_UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx
+VITE_UMAMI_SRC=https://stats.knink.top/script.js
+VITE_UMAMI_WEBSITE_ID=5014aaaa-7e32-426f-be07-62d39b4069b3
 ```
 
 构建时才会把 `<script data-do-not-track>` 注入 `index.html`；未设置则产物里没有该标签。单文件离线版不包含此插件，且 `file://` 下 `analytics.ts` 强制禁用。
