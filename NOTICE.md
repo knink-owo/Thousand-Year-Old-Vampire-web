@@ -6,6 +6,7 @@
 
 - 《Thousand Year Old Vampire》游戏本体、提示文本与规则书内容，版权归 **Tim Hutchings**（2019）所有。
 - `tyov-web/src/data/official-pack.json` 中的中文提示文本：依据规则书中文版整理，仅用于个人学习与非商业游玩。
+- `tyov-web/src/data/official-pack.en.json` 与 `tyov-web/src/content/tutorial.en.ts` 中的英文文本：逐字取自官方英文规则书，仅用于个人学习与非商业游玩。
 - 根目录与 `docs/` 下的游戏说明、示例旅程等叙事性文本。
 
 上述内容的再分发请遵循原作者授权；本项目**不因代码采用 MIT 而对这些文本另行授权**，也不提供任何商业使用许可。

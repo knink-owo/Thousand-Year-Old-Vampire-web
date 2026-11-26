@@ -17,6 +17,7 @@ KNOWN_TYPES = {
     "crippleMark", "createMortal", "createImmortal", "createImmortalHostile", "createCharacter",
     "killCharacter", "deleteCharacter", "killAllMortals", "mortalToHostileImmortal",
     "mortalToImmortal", "reviveCharacter", "characterToResource", "returnGhost", "dieByAge",
+    "loseCheckedSkill", "loseUncheckedSkill", "dreamWorld",
     "changeAllegiance", "note",
 }
 
@@ -70,7 +71,8 @@ def main():
     check("66.3 应含 gainMark", "gainMark" in types_of(entry(66, 3)))
     check("67.2 应含 editMemory", "editMemory" in types_of(entry(67, 2)))
     check("68.1 应含 gainResource 与 restoreMemory", {"gainResource", "restoreMemory"} <= set(types_of(entry(68, 1))))
-    check("70.2 应含 loseSkill", "loseSkill" in types_of(entry(70, 2)))
+    check("70.2 应含 loseUncheckedSkill（英文原书: Lose an unchecked anti-social Skill）",
+          "loseUncheckedSkill" in types_of(entry(70, 2)))
     check("70.3 应含 gainResource", "gainResource" in types_of(entry(70, 3)))
     check("11.2 应含 loseMemory（失去暴力记忆）", "loseMemory" in types_of(entry(11, 2)))
     check("33.3 应含 gainResource", "gainResource" in types_of(entry(33, 3)))

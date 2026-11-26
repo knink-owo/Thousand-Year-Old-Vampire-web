@@ -1,0 +1,17 @@
+{
+ "_comment": "英文侧人工覆盖：notes = 我们自己的规则注解（非原书文字）；textFixes = TextOnly 导出残留的修补记录（可审计）",
+ "notes": {
+  "10.2": "Artifact rule: mark this object as an Artifact in the Resource panel. From now on, whenever you lose a Resource through an encounter with an immortal, this item must be lost first; if you still hold it when an ending is reached, you may rewrite that ending.",
+  "22.2": "If you have a diary: when the diary is lost, strike out every Memory it holds. If you have no diary, lose a Resource instead.",
+  "44.1": "Branch: if you hold a Memory about this immortal, lose two Resources; otherwise lose three Resources and check a Skill.",
+  "51.3": "This mortal Character never dies of old age (they still count as a mortal Character).",
+  "65.1": "The trade brings in two contemporary Resources: strike out your oldest Resource and create two new ones."
+ },
+ "textFixes": {
+  "61.2": {
+   "old": "I See  [dead Character][a][b] Everywhere",
+   "new": "I See [dead Character] Everywhere",
+   "why": "TextOnly 导出把表单占位符 [a][b] 一并写进了正文；原书印的是填空式印记名"
+  }
+ }
+}

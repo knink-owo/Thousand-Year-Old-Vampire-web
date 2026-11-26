@@ -1,0 +1,2669 @@
+{
+ "meta": {
+  "name": "Thousand Year Old Vampire — official Prompts (English)",
+  "source": "TextOnly export of the official English rulebook (Tim Hutchings); effects aligned to the audited Chinese pack",
+  "language": "en",
+  "promptCount": 80,
+  "sourceSha256": "0d7d8a57b31ef44b269d89700b04ac1f91415c4b9707870e604fdd894f8f6d62"
+ },
+ "prompts": [
+  {
+   "number": 1,
+   "entries": [
+    {
+     "text": "In your blood-hunger, you destroy someone close to you. Kill a mortal Character. Create a mortal if none are available. Take the skill Bloodthirsty.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Bloodthirsty"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "killCharacter"
+      }
+     ]
+    },
+    {
+     "text": "You are overcome by panic and maul someone close to you, accidentally turning them into a monster like yourself. Convert a beloved mortal Character into an enemy immortal. Take the Skill Ashamed.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Ashamed"
+      },
+      {
+       "type": "mortalToHostileImmortal"
+      }
+     ]
+    },
+    {
+     "text": "You are captured and enslaved by a wicked and powerful supernatural entity. Create an immortal Character. How do you eventually escape their servitude? Check a Skill and take the Skill Humans are Cattle. Strikeout all mortal Characters, as a hundred years, have passed. Take a Resource you have used for evil while in service to your former master.",
+     "effects": [
+      {
+       "type": "createImmortal"
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainSkillNamed",
+       "skill": "Humans are Cattle"
+      },
+      {
+       "type": "killAllMortals"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 2,
+   "entries": [
+    {
+     "text": "Horrified at your new nature, you withdraw from society. Where do you hide? How do you feed? Create a stationary Resource which shelters you",
+     "effects": [
+      {
+       "type": "gainFixedResource"
+      }
+     ]
+    },
+    {
+     "text": "You reinvent your existence around the seclusion of your hiding place. You begin to work in an artful way, changing your living environment. How do you come to appreciate beauty or craft in a new way? Create a Skill based on a Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your hiding place is destroyed by mortals. What steps had you taken to ensure your survival? What revenge do you wreak upon your persecutors? Degrade a Resource into ruins. Take the Skill Vile Acts.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Vile Acts"
+      },
+      {
+       "type": "degradeResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 3,
+   "entries": [
+    {
+     "text": "A loved one discovers your condition and works to help you. Create a Resource which represents their assistance. Create a mortal Character if none are available.",
+     "effects": [
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "You manipulate this mortal into committing atrocious deeds on your behalf. What do you do when they quail at these awful tasks? Take the Skill Humans are Tools.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Humans are Tools"
+      }
+     ]
+    },
+    {
+     "text": "At the end of the mortal’s life you convert them into a mindless meat machine, an undying thing from which you feed. What regrets do you have? Change the Character to a Resource. Check a Skill.",
+     "effects": [
+      {
+       "type": "characterToResource"
+      },
+      {
+       "type": "checkSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 4,
+   "entries": [
+    {
+     "text": "You are exposed and flee to a neighboring region. Lose any stationary Resources. Check a Skill. A mortal flees with you. What new name do you adopt among these strangers?",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseAllFixedResources"
+      }
+     ]
+    },
+    {
+     "text": "You are adopted into a strange cult who take you in despite(or because of) your outlander origin. Check a Skill and create a Resource, The Secret Cabal. How did they find you? What vile initiation ceremony do you undergo? Do they know what you are?",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainResourceNamed",
+       "resource": "The Secret Cabal"
+      }
+     ]
+    },
+    {
+     "text": "The Secret Cabal, without your knowledge, performs a dark ceremony that changes a mortal Character into a horrific, alien, and immortal thing. Convert a mortal Character into an immortal enemy. What alien objectives does this new immortal pursue? Did the Cabal manipulate you into helping with this creation? How does this change your relationship with the Cabal?",
+     "effects": [
+      {
+       "type": "mortalToHostileImmortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 5,
+   "entries": [
+    {
+     "text": "You murder someone you love or respect rather than let them expose you. Kill a Character. Check a Skill. If you have no living Characters, kill no one, and create a beloved mortal Character who you have betrayed.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "killCharacter"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "A Character you’ve victimized comes to you in a dream. Do they curse or forgive you? Receive a Mark.",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "Love hidden within your soul propels you on a foolish quest for absolution from some great guilt. What wrong did you try to right? How do you fail and make everything much, much worse? Lose a Resource. Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 6,
+   "entries": [
+    {
+     "text": "A mortal Character begins serving you. Who are they? Why are they drawn to you? Create a new mortal Character.",
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "A trusted mortal Character betrays you in a surprising way. Lose a Resource. Why did they do this? Why do you forgive them?",
+     "effects": [
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "A mortal Character sacrifices themselves to save you. Check a Skill. Gain a Skill relevant to love or trust.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 7,
+   "entries": [
+    {
+     "text": "Your body manifests a trait related to the vampire that created you. How do you become more like them? Create a Skill that reflects this.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "People see a horror in you that you cannot perceive in yourself. What Mark do you possess that you do not know about? Create a Mark and a suspicious mortal who has seen it. What name do the people call you when your back is turned?",
+     "effects": [
+      {
+       "type": "gainMark"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "Through grim work with iron and fire, you remove a Mark. Record an Experience of pain and blood. Who do you blame? You may remove a Mark or replace an existing Mark with something worse.",
+     "effects": [
+      {
+       "type": "loseMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 8,
+   "entries": [
+    {
+     "text": "You are recognized for what you are by another creature like yourself. Create an immortal Character, lose a Resource, and gain a Skill. What did you lose to them?",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "createImmortal"
+      }
+     ]
+    },
+    {
+     "text": "You gain an advantage over an immortal Character. What do you take from them? What do you learn? Convert a Memory to a Skill; strikeout that Memory. Gain a mysterious Resource.",
+     "effects": [
+      {
+       "type": "memoryToSkill"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "A Character you’ve angered has powerful allies. Create a new enemy immortal Character who is the face of this mysterious group which harries you. Check a Skill to escape their grasp. Take the Skill Time to Leave. Move to a far-off region and lose any stationary Resources. Take a new name.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Time to Leave"
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseAllFixedResources"
+      },
+      {
+       "type": "createImmortalHostile"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 9,
+   "entries": [
+    {
+     "text": "You develop a system for feeding. What is it? What happens to those who die? Create a Skill that reflects this.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You not only drink their blood but financially profit from your victims as well! How do you arrange this? What atrocity do you commit to protect this system? Check a Skill, create a Resource.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "Another Character usurps your feeding system and improves it. Do you crawl back to your ouster, begging to be let back in? If so, then gain the Skill Belly on the Ground. If you instead build a new feeding system from scratch, check two Skills, and gain one Resource.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Belly on the Ground"
+      },
+      {
+       "type": "checkSkill2"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 10,
+   "entries": [
+    {
+     "text": "The stars pinwheel above you in the night. The seasons are a blur. You are as an automaton, unconscious of the passage of decades. A century passes. Strikeout a Memory. Strikeout all mortal Characters.",
+     "effects": [
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "killAllMortals"
+      }
+     ]
+    },
+    {
+     "text": "A potent artifact, religious or magical or technological, falls into your hands. With it, you can remake the world. What is this thing? Who seeks it? Create a mortal Character. Add the item as a Resource. If you still have it when you achieve any game-ending result, you may rewrite the ending as you like. You must lose this item first if you lose Resources in an encounter with an immortal Character.",
+     "effects": [
+      {
+       "type": "note",
+       "text": "Artifact rule: mark this object as an Artifact in the Resource panel. From now on, whenever you lose a Resource through an encounter with an immortal, this item must be lost first; if you still hold it when an ending is reached, you may rewrite that ending."
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "While fiddling with the artifact you accidentally bring about the end times. Devils rise, angels fall, spirits are made manifest. Human populations are levied in a war which will last centuries and decide the fate of the cosmos itself. Create a Character or Resource that represents the manifestation of a supernatural conflict that fits your story up to this point. Create two immortal Characters aligned with either side of the conflict who are now interested in your Vampire.",
+     "effects": [
+      {
+       "type": "createImmortal"
+      },
+      {
+       "type": "createImmortal"
+      },
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 11,
+   "entries": [
+    {
+     "text": "How do you find solace from the raging hunger within you? You may lose one checked or unchecked Skill.",
+     "effects": [
+      {
+       "type": "loseSkill"
+      }
+     ]
+    },
+    {
+     "text": "You discover an internal focus which lets you maintain control of your vampire self. Lose a violent Memory and take the Skill I Control the Beast and rewrite any unchecked Skill as something new. What new name do you take to distance yourself from what you once were? How is the name symbolic?",
+     "effects": [
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "gainSkillNamed",
+       "skill": "I Control the Beast and rewrite any unchecked Skill as something new"
+      },
+      {
+       "type": "rewriteSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your control breaks. You slaver and kill and revel in blood. You are your hunger. What were the last words of your closest friendly Character, mortal or immortal, as you feasted upon them? Change a beloved Memory to a lie in which you murder to protect yourself. Create a Skill that invokes the name of a dead Character in a mocking way.",
+     "effects": [
+      {
+       "type": "editMemory"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 12,
+   "entries": [
+    {
+     "text": "New laws or social mores make it harder for you to hide among the populace. How are you nearly caught and destroyed? Check a Skill. Create a Skill. Create a mortal criminal who assists you.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "Working across generations you change the laws of society to your advantage. How do you bend leaders to your will? What do you change? Create a Resource.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "A mortal protégé outstrips you. They are smarter, crueler, and more capable than you can ever be. They lock you in a dungeon—for what purpose do they use you? Create a wicked mortal Character.",
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 13,
+   "entries": [
+    {
+     "text": "Generations of the same family serve you. This line starts from any living mortal Character, or from the descendants of a dead mortal Character. What bizarre rituals do they tie to their servitude? Lose a Resource and create a Servitor of the Lineage Resource.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "Your servants are numerous, enthusiastic, and sometimes useless. Create a Skill based on a Memory, this is the Skill you use to control them.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your servants bring you a gift you do not want. Create a problematic Resource.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 14,
+   "entries": [
+    {
+     "text": "An enemy Character uses a lost Resource to turn your few friends against you. Check three Skills to regain the Resource, or check one Skill to barely survive. Which former friend did you kill? Where do you flee?",
+     "effects": [
+      {
+       "type": "checkSkill3"
+      },
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "You were born in a time and place much different than that in which you find yourself now. What values must you set aside to survive in this strange world? Create an appropriate contemporary Skill based on your most recent Memory. What new name have you recently adopted?",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "How do you rise to a position of leadership in this place? What neighbors or populations do you subjugate through war and violence? Gain a Resource you took from someone who wanted nothing but peace.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 15,
+   "entries": [
+    {
+     "text": "While traveling you come into conflict with another immortal. Gain a Mark. Who are they? What trick did you play upon them? Create a new immortal Character.",
+     "effects": [
+      {
+       "type": "gainMark"
+      },
+      {
+       "type": "createImmortal"
+      }
+     ]
+    },
+    {
+     "text": "An immortal proves to be much more than they appear. Check a Skill or else lose a Resource or Memory. Gain a Resource or Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "How does human society change drastically due to the meddling of immortals like yourself? Who benefits? What Resource do you lose? Gain one Resource, Skill, or Mark.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 16,
+   "entries": [
+    {
+     "text": "Some mortals have banded together to hunt you, well-armed, and wise to your tricks. How do you defeat or evade them? Create a mortal hunter related to one of your checked Skills. Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "The hunters are persistent, capable, and well-informed. They know things about you that you don’t. Create a Mark that is revealed in a confrontation. You are driven into hiding in an unpeopled wasteland. Lose any stationary Resources. Learn a new Skill related to this desolate region. What new name comes to you in loneliness?",
+     "effects": [
+      {
+       "type": "loseAllFixedResources"
+      },
+      {
+       "type": "gainMark"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Returning to civilization you wreak a terrible vengeance upon the hapless descendants of your harassers. Songs will be sung of their suffering for a thousand years. Historians will use it as a benchmark for evil. Create a mortal Character that was innocent and good until you exacted your toll. Do not actually write down what acts you committed against these people.",
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 17,
+   "entries": [
+    {
+     "text": "You commit a despicable murder, but not for the sake of feeding. Why? Check a Skill. Remove a mortal Character, if you like.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "deleteCharacter"
+      }
+     ]
+    },
+    {
+     "text": "You are hounded for your crime. Check a Skill, lose a Resource. Confess your crime to any Character. Convert an enemy to a friend or a friend to an enemy. If you must create a Character, you become lovers.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "changeAllegiance"
+      }
+     ]
+    },
+    {
+     "text": "You fight a duel with a beloved Character, create one if you have none. Check a violent Skill or appropriate Resource and win by killing them, or gain a Mark and flee to another land.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "killCharacter"
+      },
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 18,
+   "entries": [
+    {
+     "text": "You have fed too long in one place, destroying a community or social group. Who were they? How did the last community member die? Gain a scavenged Resource, lose a Resource.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "A community outcast has survived and vows to revenge themselves upon you. How did you know them? How did they know to catch you at your most vulnerable? Create a mortal Character bent on your destruction.",
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "You are hounded out of the land. Lose any stationary Resources. Check one Skill to escape, two to destroy your persecutor, three to make amends.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "checkSkill2"
+      },
+      {
+       "type": "checkSkill3"
+      },
+      {
+       "type": "loseAllFixedResources"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 19,
+   "entries": [
+    {
+     "text": "Two friendly Characters become embroiled in an internecine conflict. Become involved and check a Skill. Create up to two Characters, if needed. How do you profit? Gain a Resource.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "createCharacter"
+      }
+     ]
+    },
+    {
+     "text": "You scheme while your friends make war on one another. Manipulate the conflict to destroy any Character.",
+     "effects": [
+      {
+       "type": "killCharacter"
+      }
+     ]
+    },
+    {
+     "text": "Too much fighting, too much blood. Acting as peacemaker you try to end the conflict between former friends, but they both turn on you. Lose a Resource. Gain a Mark.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 20,
+   "entries": [
+    {
+     "text": "There is a great shift in the way society moves goods. How does this work to your advantage? Check a Skill. Create a Skill based on a Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your vampiric state enables you to manipulate people across generations, using them to your own advantage. Create one stationary Resource and one ostentatious Resource that symbolizes wealth and power.",
+     "effects": [
+      {
+       "type": "gainFixedResource"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "Living off investments and rents makes you lazy and blunts your hunting edge. Check a Skill that is cruel or grasping, lose a checked Skill related to creativity or effort. Gain a stationary Resource that you didn’t truly earn.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseSkill"
+      },
+      {
+       "type": "gainFixedResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 21,
+   "entries": [
+    {
+     "text": "You are trapped outside when the sun rises and take shelter someplace you are not supposed to be. A child discovers and befriends you. Create a mortal child Character and record a humanizing Experience.",
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "The child teaches you to appreciate the world again. You see small things, you smile. Create a Skill based on a pleasant Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Decades pass. The child has died of old age. You stand at their grave. What more could you have done to make their life better? How did you betray them? Strikeout that Character with great ceremony.",
+     "effects": [
+      {
+       "type": "dieByAge"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 22,
+   "entries": [
+    {
+     "text": "Create a mortal Character. You have shaped them from infancy to be exactly what you want. Lose a Resource.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "Create a mortal Character. You have shaped them from infancy to be exactly what you want. Lose a Resource.",
+     "effects": [
+      {
+       "type": "note",
+       "text": "If you have a diary: when the diary is lost, strike out every Memory it holds. If you have no diary, lose a Resource instead."
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "createCharacter"
+      }
+     ]
+    },
+    {
+     "text": "You become a loner embedded in the now, manipulating a hundred threads to stay fed and safe. Lose a Memory slot permanently. Take the Skill Feral Cunning.",
+     "effects": [
+      {
+       "type": "loseMemorySlot"
+      },
+      {
+       "type": "gainSkillNamed",
+       "skill": "Feral Cunning"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 23,
+   "entries": [
+    {
+     "text": "You master a strange new science or field of knowledge. How does your vampire nature give you special insight into these studies? Create an appropriate Skill based on a Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You strike up a long correspondence and fall in love. Create a mortal Character. Go to them by giving up a Resource, or smother the love and lose a Memory.",
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "loseMemory"
+      }
+     ]
+    },
+    {
+     "text": "Your mortal love dies through the machinations of another Character unless you check one Skill. If you do save them they will instead die of sickness, or accident, or old age. Either way, you keep a token by which to remember them. Create a Resource.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 24,
+   "entries": [
+    {
+     "text": "You are forced to adopt a new name. Why?",
+     "effects": []
+    },
+    {
+     "text": "Erase the first sentence of any two Memories. You’re not quite sure why. Do not create an Experience about this.",
+     "effects": [
+      {
+       "type": "removeMemorySentence"
+      }
+     ]
+    },
+    {
+     "text": "One place is as another to you, and you simply stop returning home. Lose a stationary Resource. Where do you wander?",
+     "effects": [
+      {
+       "type": "loseFixedResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 25,
+   "entries": [
+    {
+     "text": "Your methods for acquiring victims are no longer effective. What has changed? Lose a Resource and create a Skill which describes your new feeding techniques.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "What physical labors are necessary to utilize this method? Create a simple, practical Skill and strike out a Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "loseMemory"
+      }
+     ]
+    },
+    {
+     "text": "A mortal Character discovers your feeding system. What compelling argument do they use to get you to abandon it? Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 26,
+   "entries": [
+    {
+     "text": "You accidentally create a vampire through sloppy feeding. Create an immortal Character from an existing mortal Character. Why do you not destroy them? Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "createImmortal"
+      },
+      {
+       "type": "mortalToImmortal"
+      }
+     ]
+    },
+    {
+     "text": "This immortal Character lurks on the fringes of your existence. They become an embodiment of one of your least savory checked Skills. How do they act when your paths cross? What disturbing gift do they give you? Create a Resource.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "This immortal Character falls into the hands of mortals, indirectly imperiling your existence. Save them by checking three Skills. Lose three Resources if you do not save them. If you cannot lose all three Resources, lose as many as possible and flee to a new land. From now on all humans know vampires are real.",
+     "effects": [
+      {
+       "type": "loseResource3"
+      },
+      {
+       "type": "checkSkill3"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 27,
+   "entries": [
+    {
+     "text": "Wars rage throughout the region in which you reside. You withdraw into a hidden retreat, waiting for them to pass. Lose a Resource.",
+     "effects": [
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "Your secretive ways result in you being arrested as a spy. Check a Skill to escape or lose a Resource and gain a Mark from the experiments performed upon you. Either way, create a mortal who heads a well-funded organization that imperils creatures such as yourself.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "You become a spy, selling out the land you call home. Gain two Resources. Check a Skill, gain a Skill, uncheck an ancient and surprising Skill. Which Character suffers and dies because of your actions?",
+     "effects": [
+      {
+       "type": "gainTwoResources"
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "uncheckSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 28,
+   "entries": [
+    {
+     "text": "A long-dead mortal Character returns. What do they want from you? How have they survived death? You only recognize them if you still have a related Memory. Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "What peril do they pull down upon you? Create a new enemy Character, mortal or immortal. Check a Skill or lose a Resource.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "createCharacter"
+      }
+     ]
+    },
+    {
+     "text": "You are ceaselessly hunted by potent, supernatural beings. Describe the methods you develop to avoid detection. Lose a Memory to gain a Skill or Resource, or do not lose a Memory and create a mortal servitor.",
+     "effects": [
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 29,
+   "entries": [
+    {
+     "text": "You are exposed as a monster and flee to a far-off land. Lose any stationary Resources. You do not know the language of this new place. How do you overcome this obstacle? What new name do you take?",
+     "effects": [
+      {
+       "type": "loseAllFixedResources"
+      }
+     ]
+    },
+    {
+     "text": "You disguise yourself with an entirely new persona. Take an old Memory and modify it to make it contemporary and bland. Create a Skill based on blending in.",
+     "effects": [
+      {
+       "type": "editMemory"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You lose yourself in your assumed personality. Lose your oldest and newest Memories. Throw away your Diary. Create a Skill and Resource tied to your new life.",
+     "effects": [
+      {
+       "type": "loseTwoMemories"
+      },
+      {
+       "type": "destroyResource"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 30,
+   "entries": [
+    {
+     "text": "What social mores have your forgotten? Lose a checked Skill.",
+     "effects": [
+      {
+       "type": "loseCheckedSkill"
+      }
+     ]
+    },
+    {
+     "text": "You feel a love forbidden by the convention of mortals around you. Create a new Character. Lose a Resource.",
+     "effects": [
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "You reinvent yourself and how you relate to the world. Uncheck a Skill.",
+     "effects": [
+      {
+       "type": "uncheckSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 31,
+   "entries": [
+    {
+     "text": "You fall into a deep slumber for a hundred years. Strikeout any mortal Characters.",
+     "effects": [
+      {
+       "type": "killAllMortals"
+      }
+     ]
+    },
+    {
+     "text": "You recognize the descendant of a dead mortal who features in one of your Memories and feel compelled to make their acquaintance. How do you share knowledge about their ancestor without revealing your monstrous nature? How is this conversation awkward? Gain a contemporary and unexpected Skill. Create a mortal Character, a new friend.",
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your mortal friend discovers family documents that reveal you for what you are. How does your relationship change? You may regain a forgotten Memory related to the mortal’s ancestor.",
+     "effects": [
+      {
+       "type": "restoreMemory"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 32,
+   "entries": [
+    {
+     "text": "You keep a prisoner. Why this particular person? Why don’t you feed upon them? Create a Character and a Skill related to keeping them captive.",
+     "effects": [
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Mortals rescue your prisoner. Create two mortal rescuers. Lose a Resource.",
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "Your prisoner returns to you, but on their own terms. What is this strange new relationship?",
+     "effects": []
+    }
+   ]
+  },
+  {
+   "number": 33,
+   "entries": [
+    {
+     "text": "You know where the old things are. Create a Resource and make an enemy Character into a friend.",
+     "effects": [
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "changeAllegiance"
+      }
+     ]
+    },
+    {
+     "text": "You publish a book or in some other way cement a Memory (either current or from your Diary) in such a way that it can never be lost. Draw a star next to the Memory to indicate this and change the Memory to make it slightly less interesting. This Memory can never again be changed or struck out. It no longer takes up a Memory slot.",
+     "effects": [
+      {
+       "type": "stabilizeMemory"
+      }
+     ]
+    },
+    {
+     "text": "A massive shift of power happens in the mortal realm. Governments fall, wars are waged, and a new order is created. Who benefits? Check a Skill. Commit atrocious deeds to gain a Resource related to controlling innocent people. Take the Skill Join the Winning Side or instead check two Skills.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "checkSkill2"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 34,
+   "entries": [
+    {
+     "text": "You destroy something important to you in a purposeless rage. Lose a precious Memory or destroy a Resource.",
+     "effects": [
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "destroyResource"
+      }
+     ]
+    },
+    {
+     "text": "Your frenzies terrify even yourself. Do you learn to control them or instead choose to embrace this horror? Kill a mortal Character, if there is one, or create a Mark if not.",
+     "effects": [
+      {
+       "type": "killCharacter"
+      },
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "Pull the very skin from your face in an attempt to expunge yourself of lingering humanity. Create a Mark. How do you cover your disfigurement going forward?",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 35,
+   "entries": [
+    {
+     "text": "You encounter the descendant of an old foe and help them in some way. Why did you do this? Check a Skill. Create a mortal Character.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "They repay your kindness by lashing out at those they perceive as your enemies. A Character is killed.",
+     "effects": [
+      {
+       "type": "killCharacter"
+      }
+     ]
+    },
+    {
+     "text": "The mortal is in grave peril. Check a Skill or lose a Resource to save them, otherwise, they die a terrible death.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 36,
+   "entries": [
+    {
+     "text": "The deceptions you practice fool even yourself. Combine any three Traits to fabricate an Experience that you believe to be true.",
+     "effects": []
+    },
+    {
+     "text": "Punish someone because of this false Memory. You kill or maim a Character. Check a Skill. Take the Skill I Know What’s Real.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "I Know What’s Real"
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "killCharacter"
+      }
+     ]
+    },
+    {
+     "text": "One of your real Memories turns out to be completely fabricated, a fever dream spun of cobwebs. Completely erase one Memory.",
+     "effects": [
+      {
+       "type": "loseMemory"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 37,
+   "entries": [
+    {
+     "text": "Things fall to dust. Lose a Resource for which you have no corresponding Memory. Do not create a new Experience for this Prompt, it simply happens as you stare in silence.",
+     "effects": [
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "You are a creature with habits of unknown origin. Lose an unchecked Skill for which you have no corresponding Memory.",
+     "effects": [
+      {
+       "type": "loseSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your thoughts are calcifying, your habits are tyrants. You are nearly captured by an enemy who has been studying your patterns over many years. Break a Resource and remake it into something new and surprising.",
+     "effects": [
+      {
+       "type": "destroyResource"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 38,
+   "entries": [
+    {
+     "text": "Your whole being becomes centered in your senses and your hunger. Create a Skill that demonstrates your feral vampire nature and lose an existing Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "loseMemory"
+      }
+     ]
+    },
+    {
+     "text": "You move differently than humans and they unconsciously sense it. Create a Mark.",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "You can always find the frail, the weak, the vulnerable. Take the Skill Cull the Herd. Do not meet the eyes of the strong. They are not for you.",
+     "effects": []
+    }
+   ]
+  },
+  {
+   "number": 39,
+   "entries": [
+    {
+     "text": "Age has damaged your Diary. Strikeout three nouns from the Memories in your Diary, starting from the oldest entry. If you have no Diary, do this to the first three nouns in a Memory of middling age.",
+     "effects": []
+    },
+    {
+     "text": "You make a new copy of your crumbling Diary. In your most recent Diary Memory, swap two verbs each for the other. If you have no Diary strike out three verbs in your most recent Memories.",
+     "effects": []
+    },
+    {
+     "text": "Find a character record from an earlier playthrough of this game. Swap a Memory for one from that character sheet.",
+     "effects": []
+    }
+   ]
+  },
+  {
+   "number": 40,
+   "entries": [
+    {
+     "text": "How do you conceal yourself while you sleep? What steps have you taken for protection? Check a Skill and create a Resource. Create a mortal servant Character, if you like.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "You are approached by a supernatural Character unknown to you. They take you on a bizarre journey, then offer you spiritual solace in exchange for a terrible pledge. What do they demand? Will you accept? If you accept, gain a Skill.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "The potent beings which populate the spaces beyond sight have been revealed to you and nothing will ever be the same again. Let this bizarre world heavily influence the rest of your game. Take the Skill I See In-Between.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "I See In-Between"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 41,
+   "entries": [
+    {
+     "text": "Your body is distant from human concerns. Lose a Memory slot. Erase your oldest extant name.",
+     "effects": [
+      {
+       "type": "loseMemorySlot"
+      }
+     ]
+    },
+    {
+     "text": "A social convention or taboo from some long-forgotten part of your existence is hardwired into your being. What is it? How does this hinder your movement in society? Create a Mark.",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "A ghost haunts you, though you do not know if it is real or a manifestation of madness. Bring back a long-dead Character as a spirit.",
+     "effects": [
+      {
+       "type": "returnGhost"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 42,
+   "entries": [
+    {
+     "text": "What piece of contemporary technology can you not interact with due to your vampire nature? How did your first encounter with this technology almost get you destroyed? Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "You make the acquaintance of a group of mortals who share an interest in some Resource you possess. Is it a club? Are these friends? Create three mortal Characters. Develop a Skill related to the Resource in question.",
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Decades pass. You remain ageless as your friends slowly curl and dry up; you must leave or be exposed as a monster. Stand outside in the darkness, watching them laugh as they tell stories of how they miss you.",
+     "effects": []
+    }
+   ]
+  },
+  {
+   "number": 43,
+   "entries": [
+    {
+     "text": "You have archaic ways in spite of your focus on blending in. Create a Resource based on a checked Skill that reflects this.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "Swap around the proper nouns between two Memories. Do not create an Experience about this.",
+     "effects": [
+      {
+       "type": "swapProperNouns"
+      }
+     ]
+    },
+    {
+     "text": "Examining a Resource you possess sparks a forgotten Memory. That Resource once belonged to another Character, but you had forgotten this. Gain tremendous insight into your history by recalling this Memory. Write this forgotten Experience into your Memory or directly into a Diary. To be clear, you are creating a new “forgotten” Experience, not bringing back a Memory you struck out.",
+     "effects": [
+      {
+       "type": "resourceToMemory"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 44,
+   "entries": [
+    {
+     "text": "An immortal Character you’ve met returns to claim a debt. What is it? How have they changed? Do you pay willingly? If you have a Memory of this Character you lose two Resources, if not then lose three Resources and check a Skill.",
+     "effects": [
+      {
+       "type": "note",
+       "text": "Branch: if you hold a Memory about this immortal, lose two Resources; otherwise lose three Resources and check a Skill."
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource3"
+      },
+      {
+       "type": "loseResource2"
+      }
+     ]
+    },
+    {
+     "text": "What did they do to send you into the darkest despair? Erase your earliest Memory. You will never get it back. Gain a Skill.",
+     "effects": [
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You develop a plan and carry it through with ruthless efficiency, bringing death and destruction to an immortal Character. You may either reclaim a Resource they took, or destroy them. Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 45,
+   "entries": [
+    {
+     "text": "Your body is undergoing further corruption and change. When do you first notice these new changes? Create a Mark.",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "Your body is becoming more effective as it becomes less human. Create a Skill based on one of your Marks.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You find companionship in a group of mortals who are in some way outside society. Do they know what you are? Would they care? Create two friendly mortal Characters, each related to one of your Marks.",
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 46,
+   "entries": [
+    {
+     "text": "You are exposed and flee to a far-off land. Convert any stationary Resources to a new Resource representing portable cash or treasure. What name do you travel under? What profession do you claim when you come to rest?",
+     "effects": [
+      {
+       "type": "convertFixedResources"
+      }
+     ]
+    },
+    {
+     "text": "You flee again, this time to a far-off enclave or colony. How do you use colonial rule to your benefit? Choose one Skill: Occupier, Insurgent, Inconspicuous, or Gone Native along with an appropriate new name.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Revolution! As a suspicious outlander, you are imprisoned. Escape by checking two Skills or bribe your way free with two Resources. Spend an additional Resource to rescue any traveling companions.",
+     "effects": [
+      {
+       "type": "checkSkill2"
+      },
+      {
+       "type": "loseResource2"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 47,
+   "entries": [
+    {
+     "text": "The world has evolved in ways you can’t comprehend, causing you to lose a good amount of wealth. What happened? Check a Skill. Create a Skill that will hopefully prevent this from happening again. Lose a Resource.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "You have helpless people put in your charge. Create a Skill that helps you exploit them. Derive it from a happy Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You are impressed by the fighting spirit of one of your victims. What did they do? How do they remind you of your own earliest memories? Did they survive? Create a mortal Character.",
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 48,
+   "entries": [
+    {
+     "text": "You awaken covered in dust. Generations have passed. Your sleeping place has been sealed off. How do you escape? Lose a Resource. Strikeout all mortal Characters.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "killAllMortals"
+      }
+     ]
+    },
+    {
+     "text": "A Mortal you thought dead is still alive, somehow. Remarkable! Bring back the most recently struck out mortal Character.",
+     "effects": [
+      {
+       "type": "reviveCharacter"
+      }
+     ]
+    },
+    {
+     "text": "In your long dreaming, you discover a path to lands beyond the real, a fantastic place of enormous terrors and great beauty. You may abandon this Earth and go where none may follow; leave behind all Characters, Marks, and Resources except a Silver Sword and return to Prompt 10. Proceed forward from there, an unMarked vampire in a realm of dreams. If you land on this Prompt a second time, you awaken and can never return. If you do not travel to this dreamland you instead take the Resource A Handwritten Book of Fantastic Dreams.",
+     "effects": [
+      {
+       "type": "dreamWorld"
+      },
+      {
+       "type": "gainResourceNamed",
+       "resource": "A Handwritten Book of Fantastic Dreams"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 49,
+   "entries": [
+    {
+     "text": "What simple, practical skill proves invaluable in your strange existence? How did you learn it? Create a Skill.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "How did you come to be in a place of common laborers? What previously checked Skill convinced them to accept you? What was that night of camaraderie like? Create a mortal Character. Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "Your new friends become a source of food. Create a Resource that reflects this.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 50,
+   "entries": [
+    {
+     "text": "You are captured in a trap set for predatory mortals. What sort of criminal are you taken to be? How does this experience help you learn to better prey on mortals? Make a new Skill that sours the purity of a pleasant Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You are almost uncovered and must dramatically shift your hunting patterns. Become a member of the lowest classes and lose a Resource. If you already are of the lowest classes instead become a member of the highest and check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "You take up with predatory mortals. Create a repugnant mortal Character who becomes your associate. Even you fear these people. Why?",
+     "effects": [
+      {
+       "type": "createMortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 51,
+   "entries": [
+    {
+     "text": "When you hunger too much you become a hunting creature bereft of intellect. Lose a random Experience from a Memory somewhere in the middle of your Memory list.",
+     "effects": [
+      {
+       "type": "loseMemoryRandom"
+      }
+     ]
+    },
+    {
+     "text": "You find companionship in something that is not human. Is it an animal, or maybe something inanimate? How do you interact with it? How did you find it, or did it find you? Create either a Character or Resource to represent this companion.",
+     "effects": [
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "All things end, but apparently not this. A mortal Character for whom you hold great affection is un-aging. Is it magic? Some form of infection? They still count as a mortal Character, but they will never die of old age.",
+     "effects": [
+      {
+       "type": "note",
+       "text": "This mortal Character never dies of old age (they still count as a mortal Character)."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 52,
+   "entries": [
+    {
+     "text": "The beauty of the dawn calls you. Create an additional Memory slot dedicated to beauty, nature, or peace.",
+     "effects": [
+      {
+       "type": "gainMemorySlot"
+      }
+     ]
+    },
+    {
+     "text": "You stay long enough to hear the end of a morning bird’s song. You are burned by the Sun. Create a Mark.",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "Stretch out your arms, feel the warmth. The light pushes through your eyelids and you are not consumed in fire. Sunlight (or some other environmental condition) no longer harms you. Create a Skill about freedom.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 53,
+   "entries": [
+    {
+     "text": "A mortal Character you trusted, or one of their descendants, leads a hunting party. What shared secrets are being used against you? Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "You have the troublemaking Character at your mercy. Record an Experience of forgiveness.",
+     "effects": []
+    },
+    {
+     "text": "They betray you again and escape. Lose a Resource or gain a disfiguring Mark.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 54,
+   "entries": [
+    {
+     "text": "Your strange accent and old ways always reveal you as an outsider, mocked, and cheated at best or hated at worst. Smother these useless traits by converting an old Memory to a new Skill for blending in.",
+     "effects": [
+      {
+       "type": "memoryToSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your old memories are changing to reflect the attitudes you need in the present. Change a Memory to incorporate anachronistic, contemporary aspects. Do not create a new Experience.",
+     "effects": [
+      {
+       "type": "editMemory"
+      }
+     ]
+    },
+    {
+     "text": "Discard a Resource that is more than a hundred years old.",
+     "effects": [
+      {
+       "type": "destroyResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 55,
+   "entries": [
+    {
+     "text": "Timeless introspection becomes manifest in creative acts. Choose a creative Skill based on a lost Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You dedicate yourself to an art. Lose a Resource but gain back one lost Memory.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "restoreMemory"
+      }
+     ]
+    },
+    {
+     "text": "You achieve fame for your art but must remain in shadow. Destroy a Resource in frustration. Gain a Skill.",
+     "effects": [
+      {
+       "type": "destroyResource"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 56,
+   "entries": [
+    {
+     "text": "You begin a fantastic construction that puzzles the mortals around you. Give just a hint as to its purpose. Lose a Resource and gain the Skill Visionary.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Visionary"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "Mortals try to prevent you from realizing your vision. Check a Skill to persevere. What awful crime did you commit to protect your construction?",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "You’ve finished your construction. Why did you make this? Does it have a function? Does it change the world?",
+     "effects": []
+    }
+   ]
+  },
+  {
+   "number": 57,
+   "entries": [
+    {
+     "text": "Your knowledge of old things becomes a strength. Based on a checked Skill, what knowledge do you share with contemporary mortals? Check a Skill. Create a Resource.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "What humans seek you out for your knowledge? What do you give them? What do you take? Create a mortal Character who is smarter and more capable than you. Gain a Resource.",
+     "effects": [
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "You are brought to the site of one of your oldest crimes. Who brought you here? Why? Do you even remember? Check a Skill. If you have no Memory of this crime, you will be reminded.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 58,
+   "entries": [
+    {
+     "text": "Society has changed. How has travel become easier for you? Recover any stationary Resources for which you still have a Memory, they are re-added to your Resource list.",
+     "effects": [
+      {
+       "type": "retrieveResource"
+      }
+     ]
+    },
+    {
+     "text": "What memories are unearthed by wandering these old places? Get back a lost Memory related to the stationary Resource, or gain a new treasure Resource which you’d concealed here.",
+     "effects": [
+      {
+       "type": "restoreMemory"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "What grisly trap was set for you here? Lose a Resource, gain a Mark.",
+     "effects": [
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 59,
+   "entries": [
+    {
+     "text": "A mortal discovers the journals of a long-dead Character, or your own lost Diary, and approaches you. What do they seek? Gain a Skill or a Resource. Create a mortal Character.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "The mortal harms, shames, or exposes you. Check a Skill as you fruitlessly pursue them. Lose a Resource.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "The mortal’s lust for forbidden knowledge results in the release of a supernatural horror upon the world. Is this a gigantic monstrosity that will eventually destroy the world or a personal horror set upon destroying you in particular? Create an immortal Character or Characters.",
+     "effects": [
+      {
+       "type": "createImmortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 60,
+   "entries": [
+    {
+     "text": "Check a Skill to avoid arrest as a criminal. What happened? Who was arrested in your place? Create a mortal Character if necessary.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "Create an innocent mortal Character. They were executed for a crime you committed. What hobby were you tinkering with the night they were put to death? Take the Skill It’s None of my Concern.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "It’s None of my Concern"
+      },
+      {
+       "type": "createMortal"
+      },
+      {
+       "type": "killCharacter"
+      }
+     ]
+    },
+    {
+     "text": "An entire class of people are blamed for crimes you committed. Take the Skill Always Have a Scapegoat. Who suffers in your place? Create a friendly Character who represents these people and is ignorant of your complicity. Create another Character who is in a position of authority; they know these people are innocent but do not care.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Always Have a Scapegoat"
+      },
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "createCharacter"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 61,
+   "entries": [
+    {
+     "text": "Someone reminds you of a beloved Character long dead. Check a Skill to curry their acquaintance. Create a mortal Character.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "You frequently confuse living mortals with a dead Character. Take the Mark I See [dead Character] Everywhere.",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    },
+    {
+     "text": "Your body is ancient. A Mark becomes disabling. You must seek mortal assistance. Create a mortal Character who is especially capable of helping you.",
+     "effects": [
+      {
+       "type": "crippleMark"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 62,
+   "entries": [
+    {
+     "text": "You realize that some ancient taboo or limitation you long believed in no longer applies. What circumstances prompted this discovery? How does this make your existence more satisfying? Change one checked or unchecked Skill in a way that’s relevant.",
+     "effects": [
+      {
+       "type": "changeSkill"
+      }
+     ]
+    },
+    {
+     "text": "You discover a point of weakness where you were once strong. What have the ages taken from you? What causes this condition? Lose a checked Skill.",
+     "effects": [
+      {
+       "type": "loseCheckedSkill"
+      }
+     ]
+    },
+    {
+     "text": "You receive an injury which incapacitates you. Left alone you would recover, but helpful people rush you to a hospital. There you awaken and realize that you are known. Create a Character: a horrified mortal medical professional who knows exactly what you are.",
+     "effects": [
+      {
+       "type": "createCharacter"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 63,
+   "entries": [
+    {
+     "text": "How do you provide for your banal, material needs? Record an Experience about the time this went wrong. Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "How do you avoid the eye of the government? Create a Skill based on a Memory.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "How do you try to fool yourself into thinking you provide a valuable service to society? Take the skill Parasite.",
+     "effects": [
+      {
+       "type": "gainSkillNamed",
+       "skill": "Parasite"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 64,
+   "entries": [
+    {
+     "text": "Vast numbers of humans are migrating around the world. What group becomes easy to feed upon? How do you capitalize on their helplessness? Create a Resource.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "You manipulate society’s leaders to make one group of humans even more vulnerable to your vampiric feeding. What system do you build around victimizing these people? Check a Skill, create a relevant Skill from a Memory. Create a Character who is central to those resisting your machinations.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "createCharacter"
+      }
+     ]
+    },
+    {
+     "text": "Society collapses on a global scale and will not recover for centuries. Millions starve, governments dissolve, there is murder in the streets as cities burn. How do you take advantage of the chaos? Check a Skill. Create two new Resources. Create a Skill. What Character rises to a position of global leadership in these awful times?",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainTwoResources"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 65,
+   "entries": [
+    {
+     "text": "A possession turns out to have financial value as an antique. Trade your oldest Resource for two contemporary Resources.",
+     "effects": [
+      {
+       "type": "note",
+       "text": "The trade brings in two contemporary Resources: strike out your oldest Resource and create two new ones."
+      },
+      {
+       "type": "swapResource"
+      }
+     ]
+    },
+    {
+     "text": "You experience intense regret over a Resource you have given away or lost. Do anything to get it back. Lose two Resources or check two Skills and get back one lost Resource.",
+     "effects": [
+      {
+       "type": "checkSkill2"
+      },
+      {
+       "type": "loseResource2"
+      },
+      {
+       "type": "retrieveResource"
+      }
+     ]
+    },
+    {
+     "text": "Objects are transient. All is nothing. Throw away your oldest or most precious Resource.",
+     "effects": [
+      {
+       "type": "destroyResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 66,
+   "entries": [
+    {
+     "text": "Your knowledge is outmoded. Lose an unchecked Skill which is now useless.",
+     "effects": [
+      {
+       "type": "loseUncheckedSkill"
+      }
+     ]
+    },
+    {
+     "text": "Your concept of value is outdated. Lose a Resource.",
+     "effects": [
+      {
+       "type": "loseResource"
+      }
+     ]
+    },
+    {
+     "text": "You are so ancient you no longer look like the people of today. Create a Mark that reflects this. How do you come to realize that your very body no longer fits in?",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 67,
+   "entries": [
+    {
+     "text": "Language itself leaves you behind. People discuss concepts you cannot grasp using tools you cannot understand. How is this problem dramatically made manifest? Create a Character who will teach you a Skill to help you offset this disadvantage.",
+     "effects": [
+      {
+       "type": "createCharacter"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "New forms of communication offer new ways to hunt. Modify an old Memory to include an anachronistic use of this sort of contemporary communication technology. Check a Skill, create a Skill.",
+     "effects": [
+      {
+       "type": "editMemory"
+      },
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "Language has grown into something outside your ken. You can invoke phonemic patterns to which mortals will react in certain ways, but you can no longer share actual thoughts or feelings or abstract ideas. Create a Skill that expresses this.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 68,
+   "entries": [
+    {
+     "text": "An antiquity has surfaced which is directly tied to your mortal life. Check a Skill or lose a Resource and gain the antiquity as a Resource, then regain one of your earliest Memories. Record an Experience about acquiring the antique.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
+      },
+      {
+       "type": "restoreMemory"
+      }
+     ]
+    },
+    {
+     "text": "Because of this antiquity, someone has begun to hunt you. Create a mortal Character. How do they almost expose you? Check a Skill or lose a Resource.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "createMortal"
+      }
+     ]
+    },
+    {
+     "text": "The mortal Character hunter corners you. You become the embodiment of one of your Checked Skills to defeat them. Take a Mark.",
+     "effects": [
+      {
+       "type": "gainMark"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 69,
+   "entries": [
+    {
+     "text": "You bond with an ancient enemy Character over your shared past, finding in it something more comprehensible than this modern world. Check a Skill. You become friends. Share a Resource and gain a Resource that is shared with you.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      },
+      {
+       "type": "loseResource"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "You and your friend retire to a hidden place. There you share real pleasure for the first time in centuries. Create a Skill about love and safety.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      }
+     ]
+    },
+    {
+     "text": "You and your friend concoct a fantastic plan and bring it to fruition. Check a Skill. What is it? Do you conquer the world? Raise the dead? You may end the game now, if appropriate.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 70,
+   "entries": [
+    {
+     "text": "Mortals are cruel and work in ways outside your understanding. How were you mocked or victimized? Why was your response ineffectual and costly? Check a Skill.",
+     "effects": [
+      {
+       "type": "checkSkill"
+      }
+     ]
+    },
+    {
+     "text": "An important Memory is tainted by your exposure to the psychological tricks of contemporary society. Modify a Memory to make it less special. Lose an unchecked anti-social Skill.",
+     "effects": [
+      {
+       "type": "editMemory"
+      },
+      {
+       "type": "loseUncheckedSkill"
+      }
+     ]
+    },
+    {
+     "text": "Lose a Memory. Record an Experience driven by a desire for contemporary prestige items. Lose two Resources, gain one prestigious Resource.",
+     "effects": [
+      {
+       "type": "loseMemory"
+      },
+      {
+       "type": "loseResource2"
+      },
+      {
+       "type": "gainResource"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 71,
+   "entries": [
+    {
+     "text": "An immortal Character has been destroyed by mortals. How did you come to find out about this? What did you lose? Create a Skill based on a Memory. Create an immortal Character if necessary.",
+     "effects": [
+      {
+       "type": "gainSkill"
+      },
+      {
+       "type": "createImmortal"
+      }
+     ]
+    },
+    {
+     "text": "How were you unintentionally responsible for this killing? What minor benefit did you gain? Gain a Resource.",
+     "effects": [
+      {
+       "type": "gainResource"
+      }
+     ]
+    },
+    {
+     "text": "Create a false Experience about an immortal Character, which helps you make peace with your memories of them.",
+     "effects": []
+    }
+   ]
+  },
+  {
+   "number": 72,
+   "entries": [
+    {
+     "text": "You are caught outside and destroyed. What happened? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 73,
+   "entries": [
+    {
+     "text": "You achieve a position of absolute stability that might sustain you, unchanging, until the Sun dies. What does this mean? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 74,
+   "entries": [
+    {
+     "text": "You are physically trapped in a place from which you will never be rescued. What do you think about for the first thousand years? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 75,
+   "entries": [
+    {
+     "text": "An old friend or foe murders you in your sleep. What do you see in those seconds between dream and non-existence? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 76,
+   "entries": [
+    {
+     "text": "A government captures you, knowing you for what you are. What do they do with you? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 77,
+   "entries": [
+    {
+     "text": "Your body finally wears out. You cannot carry out your feeding patterns. What happens? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 78,
+   "entries": [
+    {
+     "text": "Creatures like yourself have taken over the Earth. What is your position in this new world? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 79,
+   "entries": [
+    {
+     "text": "You discover a way to become mortal. Do you take it? How will this go wrong? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": 80,
+   "entries": [
+    {
+     "text": "You translate yourself into a higher plane. What does this mean? The game is over.",
+     "effects": [
+      {
+       "type": "gameOver"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
