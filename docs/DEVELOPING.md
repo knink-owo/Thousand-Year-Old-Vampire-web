@@ -62,7 +62,7 @@ python tools/e2e/live.py       # 线上部署冒烟
 
 ```bash
 VITE_UMAMI_SRC=https://stats.knink.top/script.js
-VITE_UMAMI_WEBSITE_ID=5014aaaa-7e32-426f-be07-62d39b4069b3
+VITE_UMAMI_WEBSITE_ID=edfdd035-300d-4e94-9404-31b027a5cee9
 ```
 
 构建时才会把 `<script data-do-not-track>` 注入 `index.html`；未设置则产物里没有该标签。单文件离线版不包含此插件，且 `file://` 下 `analytics.ts` 强制禁用。
