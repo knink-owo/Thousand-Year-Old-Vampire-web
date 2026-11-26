@@ -41,14 +41,15 @@ jobs:
         working-directory: tyov-web
 
       - name: Package artifacts
+        # 发行物用 ASCII 文件名：GitHub 会把非 ASCII 的资产名压成 "-.html"
         run: |
-          cp tyov-web/dist-singlefile/index.html "千年吸血鬼-单文件版.html"
+          cp tyov-web/dist-singlefile/index.html thousand-year-old-vampire.html
           cd tyov-web && zip -r ../tyov-web-dist.zip dist
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            千年吸血鬼-单文件版.html
+            thousand-year-old-vampire.html
             tyov-web-dist.zip
           generate_release_notes: true
