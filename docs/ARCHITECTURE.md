@@ -10,7 +10,7 @@
 | 构建 | Vite 8（PWA 版 / 单文件版两条链） |
 | 状态 | Pinia（setup store，按领域拆分为多个工厂） |
 | 样式 | Tailwind CSS 4 + `src/style.css` 里的哥特古书主题变量 |
-| 测试 | Vitest + jsdom（42 项）、Playwright E2E（`tools/e2e`） |
+| 测试 | Vitest + jsdom（55+ 项，含双语包 parity 与模板汉文守卫）、Playwright E2E（`tools/e2e`） |
 | 存储 | 浏览器 `localStorage`，四键；无后端、无网络外发 |
 
 ## 目录
@@ -20,7 +20,11 @@ tyov-web/src/
 ├── main.ts              应用入口
 ├── App.vue              视图状态机 home/create/game/finish/tutorial/history/review
 ├── types/game.ts        全部领域类型
-├── data/official-pack.json  内置提示包（80 提示 · 222 条目）
+├── data/
+│   ├── official-pack.json     内置中文提示包（80 提示 · 222 条目）
+│   └── official-pack.en.json  内置英文提示包（结构逐条对等）
+├── i18n/                  零依赖 i18n：locale / t() / 两份字典
+├── content/               教程正文（中英各一份）
 ├── engine/              纯函数：规则、效果分类、提示包、备份文件
 ├── stores/
 │   ├── game.ts          装配层：state / computed / 各域动作
@@ -39,6 +43,15 @@ tyov-web/src/
     ├── TraitPanel.vue   五特征面板壳（tab 栏 + 弹层宿主）
     └── trait-panel/     六个 tab 子组件
 ```
+
+## 国际化
+
+细节见 [i18n.md](i18n.md)。要点：
+
+- 界面文案集中在 `src/i18n/{zh,en}.ts`，`t()` 在渲染期读 `locale`，切换即时生效
+- 提示包按 `locale` 热替换；`pack.parity.test.ts` 锁死两包结构
+- 玩家写下的内容不重绘：经历、日记、结局原因、系统日志都在写入时定格
+- 模板中不允许出现中文字面量（`template-guard.test.ts`）
 
 ## 领域模型
 

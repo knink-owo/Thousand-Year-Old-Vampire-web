@@ -14,9 +14,9 @@ npm install          # 安装依赖
 npm run dev          # 开发服务器 http://localhost:5173
 npm run lint         # ESLint（CI 门禁）
 npm run lint:fix     # 自动修复
-npm test             # Vitest 单测（42 项）
+npm test             # Vitest 单测（76 项）
 npm run build        # 类型检查 + PWA 构建 → dist/
-npm run build:singlefile  # 单文件离线版 → dist-singlefile/
+npm run build:singlefile  # 单文件离线版 → dist-singlefile/，并同步到仓库根目录
 npm run build:all    # 两个版本一起构建
 npm run preview      # 预览生产构建
 ```
@@ -25,7 +25,7 @@ npm run preview      # 预览生产构建
 
 ## 测试
 
-- **单元测试**：`src/engine/*.test.ts`（引擎与效果引导）、`src/stores/game.test.ts`（回合结算时序）、`src/views/GameView.test.ts`
+- **单元测试**：`src/engine/*.test.ts`（引擎、效果引导、双语包 parity）、`src/stores/game.test.ts`（回合结算时序）、`src/views/GameView.test.ts`、`src/i18n/*.test.ts`（字典一致性、模板汉文守卫）
 - **E2E**：`tools/e2e/`，Playwright + 系统 Edge，默认连 `http://127.0.0.1:5199/`
 
 ```bash
@@ -41,6 +41,7 @@ python tools/e2e/regression.py # 存档导入导出
 python tools/e2e/quota.py      # 存储配额满
 python tools/e2e/privacy.py    # 无网络外发断言
 python tools/e2e/resume.py     # 刷新续玩
+python tools/e2e/lang.py       # 中英切换、html lang、偏好持久化
 python tools/e2e/live.py       # 线上部署冒烟
 ```
 
@@ -51,6 +52,8 @@ python tools/e2e/live.py       # 线上部署冒烟
 - 领域逻辑放 `engine/` 纯函数或 `stores/` 领域模块；组件只做交互与展示
 - 新增效果类型：`types/game.ts` → `packLoader.ts` → `effectActions.ts` → `effectLabels.ts`
 - UI 文案使用"千年叙事体"：第二人称、动词按钮、意象化状态语
+- **UI 文案一律走 `t('key')`**：先加到 `src/i18n/zh.ts`，`en.ts` 缺键会编译失败；模板里出现中文字面量会被 `template-guard.test.ts` 拦下
+- 教程等长文本放 `src/content/`，中英各一份，章节结构保持一一对应
 - 不做网络请求；所有数据留在浏览器
 
 ## 可选统计（Umami）

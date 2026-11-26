@@ -2,7 +2,7 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { defineConfig, type Plugin } from 'vite'
-import { readFileSync } from 'node:fs'
+import { copyFileSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -50,11 +50,31 @@ function stampVersion(): Plugin {
   }
 }
 
+/**
+ * 构建完成后把成品同步到仓库根目录（`千年吸血鬼-单文件版.html`）。
+ * 发布产物与构建脚本因此不会走样：以前这一步靠手工复制，容易忘记。
+ */
+function publishToRepoRoot(): Plugin {
+  return {
+    name: 'tyov-publish-singlefile',
+    closeBundle() {
+      try {
+        copyFileSync(
+          resolve(rootDir, 'dist-singlefile/index.html'),
+          resolve(rootDir, '../千年吸血鬼-单文件版.html'),
+        )
+      } catch {
+        // 构建仍算成功：根目录文件无法写入时不影响 dist-singlefile/ 的正确性
+      }
+    },
+  }
+}
+
 export default defineConfig({
   base: './',
   // public/ 仅在在线版使用（PWA 图标等）；单文件版把 favicon 内联，无需复制
   publicDir: false,
-  plugins: [vue(), tailwindcss(), inlineFavicon(), stampVersion(), viteSingleFile()],
+  plugins: [vue(), tailwindcss(), inlineFavicon(), stampVersion(), viteSingleFile(), publishToRepoRoot()],
   build: {
     outDir: 'dist-singlefile',
     emptyOutDir: true,

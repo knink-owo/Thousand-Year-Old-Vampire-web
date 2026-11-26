@@ -1,5 +1,7 @@
 # 千年吸血鬼 · Thousand Year Old Vampire
 
+**中文** · [English](README.en.md)
+
 > 你永生不死。你将遗忘一切。
 
 一款**单人、无 GM、日记式** TRPG 的网页数字工具：你扮演一尊始于十世纪的吸血鬼，在提示、掷骰与日记之间穿行千年。
