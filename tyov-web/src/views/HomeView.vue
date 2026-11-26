@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import { useGameStore } from '../stores/game'
 import ConfirmDialog, { type ConfirmState } from '../components/ConfirmDialog.vue'
+import LangSwitch from '../components/LangSwitch.vue'
+import { t } from '../i18n'
 
 const store = useGameStore()
 
@@ -23,7 +25,7 @@ function abandonJourney() {
   const s = store.state
   if (!s) return
   confirmAsk.value = {
-    text: `确定要放弃这段旅程吗？「${s.name}」的存档与历史记录将被删除，无法恢复。`,
+    text: t('home.abandonConfirm', { name: s.name }),
     onOk: () => store.abandonCurrent(),
   }
 }
@@ -34,40 +36,44 @@ function abandonJourney() {
     <!-- 题铭 -->
     <div class="text-center pt-6 pb-10">
       <h2 class="title-serif text-5xl md:text-6xl gold-text tracking-[0.12em] m-0 leading-tight">
-        千年<span class="blood-text">吸血鬼</span>
+        {{ t('app.brand1') }}<span class="blood-text">{{ t('app.brand2') }}</span>
       </h2>
       <p class="mt-4 text-sm md:text-base opacity-70 leading-relaxed tracking-widest">
-        你永生不死。你将遗忘一切。
+        {{ t('home.tagline') }}
       </p>
       <p class="mt-2 text-xs opacity-40 tracking-[0.25em]">
-        单人日记式角色扮演 · 记录你的千年
+        {{ t('home.sub') }}
       </p>
+      <!-- 语言切换：首页直接可见 -->
+      <div class="mt-6 flex justify-center">
+        <LangSwitch />
+      </div>
     </div>
 
     <!-- 进行中的旅程 -->
     <div v-if="hasOngoing" class="card p-6 mb-8 border-red-900/60">
-      <p class="text-xs tracking-[0.3em] opacity-50 mb-2">未 竟 之 旅</p>
+      <p class="text-xs tracking-[0.3em] opacity-50 mb-2">{{ t('home.ongoing') }}</p>
       <p class="text-lg title-serif text-red-200/90">{{ store.state?.name }}</p>
       <p class="text-sm opacity-60 mt-1">
-        已历经 {{ store.state?.moves }} 次提示 · 此刻徘徊于提示 {{ store.state?.currentPromptNumber }}
+        {{ t('home.ongoingMeta', { moves: store.state?.moves ?? 0, prompt: store.state?.currentPromptNumber ?? 1 }) }}
       </p>
       <div class="flex gap-3 mt-4">
-        <button class="btn flex-1" @click="abandonJourney">放弃旅程</button>
-        <button class="btn btn-gold flex-1" @click="continueJourney">继续旅程</button>
+        <button class="btn flex-1" @click="abandonJourney">{{ t('home.abandon') }}</button>
+        <button class="btn btn-gold flex-1" @click="continueJourney">{{ t('home.continue') }}</button>
       </div>
     </div>
 
     <!-- 主按钮 -->
     <div class="grid gap-4">
       <button class="btn btn-gold text-xl py-5 tracking-widest" @click="emit('navigate', 'create')">
-        🩸 开始旅程
+        {{ t('home.start') }}
       </button>
       <button class="btn text-lg py-4" @click="emit('navigate', 'tutorial')">
-        📜 阅读教程
+        {{ t('home.tutorial') }}
       </button>
       <button class="btn btn-ghost text-lg py-4" @click="emit('navigate', 'history')">
-        🕯️ 翻阅历史
-        <span v-if="totalTales" class="ml-2 text-xs opacity-60">（{{ totalTales }} 段往事）</span>
+        {{ t('home.history') }}
+        <span v-if="totalTales" class="ml-2 text-xs opacity-60">{{ t('home.historyCount', { n: totalTales }) }}</span>
       </button>
     </div>
 

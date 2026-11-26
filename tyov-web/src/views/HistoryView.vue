@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGameStore } from '../stores/game'
+import { t } from '../i18n'
 
 const store = useGameStore()
 const emit = defineEmits<{ (e: 'navigate', to: 'home' | 'create' | 'review', recordId?: string): void }>()
@@ -10,13 +11,13 @@ const records = computed(() => [...store.records].sort((a, b) => b.createdAt - a
 function fmtDate(ts: number): string {
   const d = new Date(ts)
   const pad = (x: number) => String(x).padStart(2, '0')
-  return `${d.getFullYear()} 年 ${pad(d.getMonth() + 1)} 月 ${pad(d.getDate())} 日`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 function stage(rec: { finished: boolean; moves: number }): string {
-  if (rec.finished) return '已终结'
-  if (rec.moves === 0) return '尚未启程'
-  return '仍在旅途'
+  if (rec.finished) return t('history.stageEnded')
+  if (rec.moves === 0) return t('history.stageIdle')
+  return t('history.stageOngoing')
 }
 
 function canContinue(id: string): boolean {
@@ -28,16 +29,16 @@ function canContinue(id: string): boolean {
 <template>
   <div class="fade-in max-w-3xl mx-auto">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="title-serif text-2xl gold-text m-0">翻阅历史</h2>
-      <button class="btn btn-ghost text-sm" @click="emit('navigate', 'home')">← 返回</button>
+      <h2 class="title-serif text-2xl gold-text m-0">{{ t('history.title') }}</h2>
+      <button class="btn btn-ghost text-sm" @click="emit('navigate', 'home')">{{ t('history.back') }}</button>
     </div>
 
     <!-- 空状态 -->
     <div v-if="records.length === 0" class="card p-10 text-center">
       <p class="text-3xl mb-4 opacity-50">🕯️</p>
-      <p class="opacity-80">这里还没有任何往事。</p>
-      <p class="text-sm opacity-50 mt-2">当你开始第一段千年，它会被记录于此。</p>
-      <button class="btn btn-gold mt-6" @click="emit('navigate', 'create')">开始旅程</button>
+      <p class="opacity-80">{{ t('history.empty') }}</p>
+      <p class="text-sm opacity-50 mt-2">{{ t('history.emptyHint') }}</p>
+      <button class="btn btn-gold mt-6" @click="emit('navigate', 'create')">{{ t('history.start') }}</button>
     </div>
 
     <!-- 历史列表 -->
@@ -54,27 +55,27 @@ function canContinue(id: string): boolean {
             </span>
           </div>
           <p class="text-xs opacity-50 mt-1.5">
-            {{ fmtDate(r.createdAt) }} 启程 ·
-            {{ r.moves === 0 ? '尚未回答任何提示' : `历经 ${r.moves} 次提示` }} ·
-            止步于提示 {{ r.currentPrompt }}
+            {{ t('history.origin', { date: fmtDate(r.createdAt) }) }}
+            {{ r.moves === 0 ? t('history.noAnswers') : t('history.answers', { n: r.moves }) }} ·
+            {{ t('history.stoppedAt', { n: r.currentPrompt }) }}
           </p>
           <p class="text-xs opacity-40 mt-0.5">
-            记忆 {{ r.memoryCount }} · 技能 {{ r.skillCount }} · 资源 {{ r.resourceCount }}
+            {{ t('history.counts', { m: r.memoryCount, s: r.skillCount, r: r.resourceCount }) }}
           </p>
         </div>
         <div class="shrink-0 flex flex-wrap gap-2 justify-end">
-          <button v-if="canContinue(r.id)" class="btn btn-gold text-sm" @click="emit('navigate', 'create')">继续</button>
+          <button v-if="canContinue(r.id)" class="btn btn-gold text-sm" @click="emit('navigate', 'create')">{{ t('history.continue') }}</button>
           <button class="btn text-sm" @click="emit('navigate', 'review', r.id)">
-            回顾
+            {{ t('history.review') }}
           </button>
-          <button class="btn btn-ghost text-sm" @click="store.removeRecord(r.id)">遗忘</button>
+          <button class="btn btn-ghost text-sm" @click="store.removeRecord(r.id)">{{ t('history.forget') }}</button>
         </div>
       </div>
 
       <div class="flex justify-end">
-        <button class="btn btn-ghost text-xs opacity-70" @click="store.clearRecords()">抹去全部历史</button>
+        <button class="btn btn-ghost text-xs opacity-70" @click="store.clearRecords()">{{ t('history.clear') }}</button>
       </div>
-      <p class="text-xs opacity-40 text-center">每段旅程的完整记录都保存在本机 · 「回顾」以只读方式展开逝去的千年 · 未完结的旅程仅留摘要</p>
+      <p class="text-xs opacity-40 text-center">{{ t('history.footer') }}</p>
     </div>
   </div>
 </template>

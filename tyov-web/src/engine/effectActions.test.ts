@@ -24,7 +24,7 @@ describe('effectActionSpec', () => {
     expect(effectActionSpec(e('checkSkill')).target).toBe('skill');
     expect(effectActionSpec(e('checkSkill')).filter).toBe('unchecked');
     expect(effectActionSpec(e('killCharacter')).target).toBe('character');
-    expect(effectActionSpec(e('killCharacter')).confirmText).toBeTruthy();
+    expect(effectActionSpec(e('killCharacter')).confirmKey).toBeTruthy();
   });
 
   it('input 类：需要输入命名', () => {

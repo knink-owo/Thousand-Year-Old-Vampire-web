@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGameStore } from '../stores/game'
+import { t } from '../i18n'
 
 const store = useGameStore()
 
@@ -21,9 +22,9 @@ const entry = computed(() => {
 
     <div class="flex items-center gap-3 mb-4">
       <span class="px-3 py-1 rounded-sm text-sm tracking-widest" :class="entryIndex === 1 ? 'bg-red-950/60 text-red-300 border border-red-900' : 'bg-amber-950/40 text-amber-200 border border-amber-900'">
-        {{ entryIndex === 1 ? '首次触达' : `第 ${entryIndex} 次触达` }}
+        {{ entryIndex === 1 ? t('prompt.first') : t('prompt.nth', { n: entryIndex }) }}
       </span>
-      <span class="text-sm opacity-60">提示 {{ store.state?.currentPromptNumber }}</span>
+      <span class="text-sm opacity-60">{{ t('prompt.number', { n: store.state?.currentPromptNumber ?? 1 }) }}</span>
     </div>
 
     <p class="text-lg md:text-xl leading-relaxed title-serif whitespace-pre-wrap">

@@ -3,6 +3,7 @@ import type { GameCtx } from './context';
 import { logText, uid } from './context';
 import type { DiaryEntry, GameState, Resource } from '../types/game';
 import { rollMove, advancePrompt, entryVerdict, entryKey } from '../engine/core';
+import { t } from '../i18n';
 
 export function createTurnActions(ctx: GameCtx) {
   const { state, pack, currentPrompt, currentEntryIndex, persist } = ctx;
@@ -10,7 +11,7 @@ export function createTurnActions(ctx: GameCtx) {
   function startGame(g: GameState) {
     state.value = g;
     state.value.started = true;
-    state.value.log.push(logText('system', `旅程开始。${g.name} 醒来，千年岁月自此展开。`, 1));
+    state.value.log.push(logText('system', t('log.start', { name: g.name }), 1));
     persist();
   }
 
@@ -45,12 +46,12 @@ export function createTurnActions(ctx: GameCtx) {
   function completeTurn(diaryContent: string | null): { roll: { d10: number; d6: number; delta: number; from: number; to: number }; nextNumber: number; entryIndex: number } {
     const s = state.value;
     const p = currentPrompt.value;
-    if (!s || !p) throw new Error('没有进行中的游戏');
+    if (!s || !p) throw new Error(t('err.noGame'));
     // 终局结论取自"进入条目时"锁定的结果，绝不在效果执行后用新状态复判
     const verdict = ctx.lockVerdict();
     const epIdx = currentEntryIndex.value; // 本轮条目 1..n（已按条目数收敛）
     const entry = p.entries[epIdx - 1];
-    if (!entry) throw new Error('提示条目缺失');
+    if (!entry) throw new Error(t('err.missingEntry'));
 
     // 1) 每次回答提示都必须创建经历（除非提示明确说"不要为此提示创建新的经历"，由 UI 控制）
     // 2) 日志游戏：附加日记条目
@@ -64,7 +65,11 @@ export function createTurnActions(ctx: GameCtx) {
         createdAt: Date.now(),
       };
       s.diaries.push(de);
-      s.log.push(logText('diary', `提示${p.number}（第${epIdx}次）：${de.content.slice(0, 60)}${de.content.length > 60 ? '…' : ''}`, p.number));
+      s.log.push(logText('diary', t('log.diary', {
+        prompt: p.number,
+        n: epIdx,
+        text: de.content.slice(0, 60) + (de.content.length > 60 ? '…' : ''),
+      }), p.number));
     }
 
     // 3) 掷骰移动
@@ -75,20 +80,24 @@ export function createTurnActions(ctx: GameCtx) {
 
     if (verdict.gameOver) {
       s.finished = true;
-      s.finishReason = `你的故事到此为止——${entry.text.length > 50 ? entry.text.slice(0, 50) + '…' : entry.text}`;
+      s.finishReason = t('log.finishReason', {
+        text: entry.text.length > 50 ? entry.text.slice(0, 50) + '…' : entry.text,
+      });
       s.finishedAt = Date.now();
-      s.log.push(logText('system', '游戏结束。', p.number));
+      s.log.push(logText('system', t('log.gameOver'), p.number));
     } else {
       // 条目用尽则强制前进到下一提示（即便骰子移回）；否则按骰子移动
       const entriesExhausted = adv.nextNumber !== p.number;
       s.currentPromptNumber = entriesExhausted ? adv.nextNumber : roll.to;
-      s.log.push(
-        logText('system',
-          entriesExhausted
-            ? `提示${p.number}的所有条目都已回应，前往提示${adv.nextNumber}。`
-            : `回答提示${p.number}后掷骰：D10=${roll.d10}，D6=${roll.d6}，差=${roll.delta}${roll.repeats ? '（再次遇到相同提示）' : roll.hitFloor ? '（抵达提示 1）' : ''} → 前往提示${roll.to}`,
-          p.number),
-      );
+      if (entriesExhausted) {
+        s.log.push(logText('system', t('log.allEntriesAnswered', { prompt: p.number, to: adv.nextNumber }), p.number));
+      } else {
+        const tail = roll.repeats ? t('log.rollRepeat') : roll.hitFloor ? t('log.rollFloor') : '';
+        s.log.push(logText('system',
+          t('log.roll', { prompt: p.number, d10: roll.d10, d6: roll.d6, delta: roll.delta })
+          + tail + t('log.rollTo', { to: roll.to }),
+          p.number));
+      }
     }
     persist();
     return { roll, nextNumber: adv.nextNumber, entryIndex: epIdx };
@@ -99,9 +108,9 @@ export function createTurnActions(ctx: GameCtx) {
     const s = state.value;
     if (!s || s.finished) return;
     s.finished = true;
-    s.finishReason = reason || '你选择在此终结自己的千年。';
+    s.finishReason = reason || t('log.endDefault');
     s.finishedAt = Date.now();
-    s.log.push(logText('system', '游戏结束。', s.currentPromptNumber));
+    s.log.push(logText('system', t('log.gameOver'), s.currentPromptNumber));
     persist();
   }
 
@@ -111,14 +120,14 @@ export function createTurnActions(ctx: GameCtx) {
     if (!s || s.dreamWorld) return;
     s.dreamWorld = true;
     // 亲手挑一把银剑带走，其余全数留下
-    const silver: Resource = { id: uid(), name: '一把银剑', fixed: false, lost: false, isDiary: false };
+    const silver: Resource = { id: uid(), name: t('game.dream.silverSword'), fixed: false, lost: false, isDiary: false };
     s.characters = [];
     s.marks = [];
     s.resources = [silver];
     s.diaryResourceId = undefined;
     for (const m of s.memories) m.inDiary = false; // 日记被留下，记忆回归（仍占槽）
     s.currentPromptNumber = 10;
-    s.log.push(logText('system', '你在梦境中醒来——现实之地的所有牵绊都被抛下，唯余一把银剑。你成为无印记的吸血鬼，回到提示10。', 48));
+    s.log.push(logText('system', t('log.dreamWorld'), 48));
     persist();
   }
 

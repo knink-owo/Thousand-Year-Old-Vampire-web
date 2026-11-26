@@ -14,6 +14,7 @@ import ResourceTab from './trait-panel/ResourceTab.vue'
 import CharacterTab from './trait-panel/CharacterTab.vue'
 import MarkTab from './trait-panel/MarkTab.vue'
 import DiaryTab from './trait-panel/DiaryTab.vue'
+import { t } from '../i18n'
 
 const props = defineProps<{
   initialTab?: 'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary'
@@ -27,12 +28,12 @@ const s = computed(() => store.state!)
 const tab = ref<'memory' | 'skill' | 'resource' | 'character' | 'mark' | 'diary'>(props.initialTab ?? 'memory')
 
 const tabs = computed(() => [
-  { key: 'memory', label: `记忆 (${s.value.memorySlots}槽)` },
-  { key: 'skill', label: `技能 (${s.value.skills.length})` },
-  { key: 'resource', label: `资源 (${s.value.resources.length})` },
-  { key: 'character', label: `角色 (${s.value.characters.length})` },
-  { key: 'mark', label: `印记 (${s.value.marks.length})` },
-  { key: 'diary', label: `日志 (${s.value.diaries.length})` },
+  { key: 'memory', label: t('panel.tab.memory', { n: s.value.memorySlots }) },
+  { key: 'skill', label: t('panel.tab.skill', { n: s.value.skills.length }) },
+  { key: 'resource', label: t('panel.tab.resource', { n: s.value.resources.length }) },
+  { key: 'character', label: t('panel.tab.character', { n: s.value.characters.length }) },
+  { key: 'mark', label: t('panel.tab.mark', { n: s.value.marks.length }) },
+  { key: 'diary', label: t('panel.tab.diary', { n: s.value.diaries.length }) },
 ] as const)
 
 // 供外部（效果执行引导）切换 tab
@@ -50,13 +51,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <!-- Tab 栏 -->
     <div class="flex flex-wrap gap-2 mb-5">
       <button
-        v-for="t in tabs"
-        :key="t.key"
+        v-for="it in tabs"
+        :key="it.key"
         class="px-3 py-1.5 text-sm rounded-sm border transition-colors"
-        :class="tab === t.key ? 'border-blood-bright bg-red-950/50 text-red-200' : 'border-amber-900/40 opacity-70 hover:opacity-100'"
-        @click="tab = t.key"
+        :class="tab === it.key ? 'border-blood-bright bg-red-950/50 text-red-200' : 'border-amber-900/40 opacity-70 hover:opacity-100'"
+        @click="tab = it.key"
       >
-        {{ t.label }}
+        {{ it.label }}
       </button>
     </div>
 
@@ -74,11 +75,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
         @click.self="pendingConfirm = null"
       >
-        <div class="card p-6 w-full max-w-sm border-red-900/60" role="alertdialog" aria-modal="true" aria-label="确认操作">
-          <h4 class="title-serif text-xl blood-text mb-3">你确定吗？</h4>
-          <p class="text-sm leading-relaxed opacity-85 mb-5">{{ confirmDesc }}</p>
+        <div class="card p-6 w-full max-w-sm border-red-900/60" role="alertdialog" aria-modal="true" :aria-label="t('panel.confirmAria')">
+          <h4 class="title-serif text-xl blood-text mb-3">{{ t('panel.confirmTitle') }}</h4>
+          <p class="text-sm leading-relaxed opacity-85 mb-5 whitespace-pre-wrap">{{ confirmDesc }}</p>
           <div class="flex gap-3 justify-end">
-            <button class="btn btn-ghost" @click="pendingConfirm = null">取消</button>
+            <button class="btn btn-ghost" @click="pendingConfirm = null">{{ t('common.cancel') }}</button>
             <button class="btn btn-danger" @click="doConfirm">{{ confirmKindLabel }}</button>
           </div>
         </div>

@@ -8,6 +8,7 @@ import PromptDialog, { type PromptState } from '../components/PromptDialog.vue'
 import ConfirmDialog, { type ConfirmState } from '../components/ConfirmDialog.vue'
 import { placeExperienceDecision, entrySkipsExperience } from '../engine/core'
 import type { Memory } from '../types/game'
+import { t } from '../i18n'
 
 const store = useGameStore()
 const s = computed(() => store.state!)
@@ -48,13 +49,14 @@ watch(
 const dreamWorldEntry = computed(() => entryEffects.value.some(e => e.type === 'dreamWorld'))
 function enterDream() {
   confirmAsk.value = {
-    text: '确定踏入梦境之地吗？所有角色、印记与资源将被留下（唯保留一把银剑），并回到提示 10，成为无印记的吸血鬼。',
+    text: t('game.dream.confirm'),
     onOk: () => store.enterDreamWorld(),
   }
 }
 function takeDreamBook() {
-  if (!s.value.resources.some(r => r.name.includes('手写书'))) {
-    store.addResource('一本奇幻梦境的手写书')
+  const book = t('game.dream.bookName')
+  if (!s.value.resources.some(r => r.name === book)) {
+    store.addResource(book)
   }
 }
 
@@ -108,7 +110,7 @@ const forgettableMemories = computed(() =>
 function memoryLabel(m: Memory): string {
   if (m.title) return m.title
   const first = m.experiences[0]?.text ?? ''
-  return first ? (first.length > 26 ? first.slice(0, 26) + '…' : first) : '未命名的记忆'
+  return first ? (first.length > 26 ? first.slice(0, 26) + '…' : first) : t('panel.unnamedMemory')
 }
 
 function resetPlacement() {
@@ -149,7 +151,7 @@ function forgetFromGameView(memoryId: string) {
   const m = s.value.memories.find(x => x.id === memoryId)
   if (!m) return
   confirmAsk.value = {
-    text: `确定要遗忘记忆「${memoryLabel(m)}」吗？记忆将被划掉，其中的经历不再占用记忆槽。`,
+    text: t('game.forgetConfirm', { name: memoryLabel(m) }),
     onOk: () => store.forgetMemory(memoryId),
   }
 }
@@ -157,21 +159,18 @@ function forgetFromGameView(memoryId: string) {
 function moveToDiaryFromGame(memoryId: string) {
   if (!s.value.diaryResourceId) {
     ask.value = {
-      title: '创建你的日记',
-      text: '规则书："请给它一个简短的描述"。例如：一本结实的皮革装订书；一组饰有象形文字图案的罐子；镶嵌金丝边框的可怕仪式面具；一个古老网站上的密码保护论坛。',
-      initial: '一本结实的皮革装订书',
+      title: t('memory.diaryCreateTitle'),
+      text: t('memory.diaryCreateText', { examples: t('memory.diaryExamples') }),
+      initial: t('memory.diaryDefaultName'),
       allowEmpty: true,
-      okLabel: '创建日记',
+      okLabel: t('memory.diaryCreateOk'),
       onOk: (v) => store.moveMemoryToDiary(memoryId, v.trim() || undefined),
     }
     return
   }
   const inDiaryCount = s.value.memories.filter(x => x.inDiary).length
   if (inDiaryCount >= 4) {
-    confirmAsk.value = {
-      okOnly: true,
-      text: '日记已经写满 4 段记忆，无法再移入（规则书："一本日记最多可以容纳四段吸血鬼的记忆"）。\n你可以：① 改为遗忘这段记忆；② 到资源页「失去」现有日记（其中包含的记忆将一并划掉），之后再另立一本新日记。',
-    }
+    confirmAsk.value = { okOnly: true, text: t('memory.diaryFull') }
     return
   }
   store.moveMemoryToDiary(memoryId)
@@ -179,8 +178,8 @@ function moveToDiaryFromGame(memoryId: string) {
 
 function endGameNow() {
   confirmAsk.value = {
-    text: '确认在此终结旅程吗？之后可在"历史"中回顾这段千年。',
-    onOk: () => store.endGame(`你选择在此终结自己的千年——${s.value.name}的故事就此合上。`),
+    text: t('game.endConfirm'),
+    onOk: () => store.endGame(t('game.endReason', { name: s.value.name })),
   }
 }
 
@@ -189,7 +188,7 @@ function exportGameJson() {
   const blob = new Blob([json], { type: 'application/json;charset=utf-8' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `${store.state?.name ?? 'vampire'}-存档.json`
+  a.download = t('game.saveFileName', { name: store.state?.name ?? t('app.fallbackName') })
   a.click()
   URL.revokeObjectURL(a.href)
 }
@@ -214,6 +213,21 @@ function openDrawer(tab: 'memory' | 'diary') {
   drawerOpen.value = true
 }
 
+// ---- 骰子文案 ----
+const rollMoveText = computed(() => {
+  const r = rollResult.value
+  if (!r) return ''
+  if (r.delta === 0) return t('game.roll.zero')
+  return r.delta > 0 ? t('game.roll.forward', { n: r.delta }) : t('game.roll.back', { n: Math.abs(r.delta) })
+})
+const rollLine = computed(() => {
+  const r = rollResult.value
+  if (!r) return ''
+  if (r.actualTo !== r.to) return rollMoveText.value + t('game.roll.exhausted', { from: r.from, to: r.actualTo })
+  if (r.delta === 0) return t('game.roll.staySame')
+  return t('game.roll.moveTo', { move: rollMoveText.value, to: r.actualTo })
+})
+
 function completeTurn() {
   const s0 = s.value
   const prevPrompt = s0.currentPromptNumber
@@ -229,7 +243,7 @@ function completeTurn() {
       store.currentEntryIndex,
     )
     if (res.status === 'mustForget') {
-      lastMessage.value = '记忆已满：请先遗忘一段记忆或将一段记忆移入日记，再安放这段经历。'
+      lastMessage.value = t('game.memoryFull')
       return
     }
   }
@@ -256,10 +270,10 @@ function completeTurn() {
 
   // 5. 生成下一轮的信息卡
   lastMessage.value = actualTo !== roll.to
-    ? `提示${prevPrompt}的条目已全部回应——你前往提示 ${actualTo}。`
+    ? t('game.nextAllAnswered', { from: prevPrompt, to: actualTo })
     : roll.delta === 0
-      ? `你再次面对同一提示——命运让你停在原地。`
-      : `骰子将你带向提示 ${actualTo}。`
+      ? t('game.nextSame')
+      : t('game.nextMove', { to: actualTo })
   // 清空输入
   experienceText.value = ''
   diaryText.value = ''
@@ -278,19 +292,19 @@ function completeTurn() {
         <div>
           <h2 class="title-serif text-xl gold-text m-0">{{ s.name }}</h2>
           <p class="text-xs opacity-50 mt-1">
-            第 {{ s.moves }} 次回答 · 当前提示 {{ s.currentPromptNumber }}
-            <span class="ml-2">{{ s.usesFastMode ? '快速游戏' : '日志游戏' }}</span>
+            {{ t('game.answerCount', { moves: s.moves, prompt: s.currentPromptNumber }) }}
+            <span class="ml-2">{{ s.usesFastMode ? t('game.mode.fast') : t('game.mode.journal') }}</span>
           </p>
         </div>
         <div class="flex gap-2 flex-wrap">
-          <button class="btn btn-ghost text-xs" @click="exportGameJson">导出存档 JSON</button>
-          <button class="btn btn-ghost text-xs" @click="endGameNow">结束旅程</button>
+          <button class="btn btn-ghost text-xs" @click="exportGameJson">{{ t('game.export') }}</button>
+          <button class="btn btn-ghost text-xs" @click="endGameNow">{{ t('game.end') }}</button>
         </div>
       </div>
 
       <!-- 掷骰结果（置于提示之上：完成回合后一屏可见提示与骰子） -->
       <div v-if="rollResult" class="card p-5 text-center">
-        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">骰 子 之 判</p>
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">{{ t('game.roll.title') }}</p>
         <div class="flex items-center justify-center gap-8">
           <div class="die-roll">
             <div class="text-4xl gold-text title-serif">{{ rollResult.d10 }}</div>
@@ -304,18 +318,10 @@ function completeTurn() {
           <div class="text-2xl opacity-40">=</div>
           <div class="die-roll">
             <div class="text-4xl blood-text title-serif">{{ rollResult.delta > 0 ? '+' : '' }}{{ rollResult.delta }}</div>
-            <div class="text-xs opacity-50 mt-1">差</div>
+            <div class="text-xs opacity-50 mt-1">{{ t('game.roll.delta') }}</div>
           </div>
         </div>
-        <p class="mt-4 text-sm opacity-80">
-          <template v-if="rollResult.actualTo !== rollResult.to">
-            {{ rollResult.delta > 0 ? `向后移动 ${rollResult.delta}` : rollResult.delta < 0 ? `向前移动 ${Math.abs(rollResult.delta)}` : '差为 0' }}
-            ——但提示 {{ rollResult.from }} 的条目已全部回应，无论骰子指向何处，都将前往提示 {{ rollResult.actualTo }}。
-          </template>
-          <template v-else>
-            {{ rollResult.delta > 0 ? `向后移动 ${rollResult.delta}，前往提示 ${rollResult.actualTo}` : rollResult.delta < 0 ? `向前移动 ${Math.abs(rollResult.delta)}，前往提示 ${rollResult.actualTo}` : '差为 0——停留在相同的提示' }}
-          </template>
-        </p>
+        <p class="mt-4 text-sm opacity-80">{{ rollLine }}</p>
       </div>
 
       <!-- 提示卡 -->
@@ -331,78 +337,78 @@ function completeTurn() {
 
       <!-- 岁月流逝：凡人会老去（规则书"角色"节） -->
       <div v-if="showAging && livingMortals.length > 0 && !s.finished" class="card p-5 border-amber-900/40">
-        <p class="text-xs tracking-[0.3em] opacity-50 mb-2">岁 月 流 逝</p>
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-2">{{ t('game.aging.title') }}</p>
         <p class="text-sm opacity-85 leading-relaxed mb-3">
-          数个春秋在指尖流逝。你认识的一位凡人正在衰老——每隔四五个提示，便有一位凡人会因年老而去世。让哪段生命落幕，或让岁月暂缓？
+          {{ t('game.aging.text') }}
         </p>
         <div class="space-y-2">
           <div v-for="c in livingMortals" :key="c.id" class="flex items-center gap-3 text-sm">
             <span class="flex-1 truncate">{{ c.name }}</span>
-            <span class="text-xs opacity-50 shrink-0">{{ c.description || '凡人' }}</span>
-            <button class="btn btn-ghost text-xs shrink-0" @click="ageIt(c.id)">因年老而去</button>
+            <span class="text-xs opacity-50 shrink-0">{{ c.description || t('game.aging.mortal') }}</span>
+            <button class="btn btn-ghost text-xs shrink-0" @click="ageIt(c.id)">{{ t('game.aging.die') }}</button>
           </div>
         </div>
         <div class="mt-3">
-          <button class="btn btn-ghost text-xs opacity-60" @click="postponeAging">岁月暂缓（忽略）</button>
+          <button class="btn btn-ghost text-xs opacity-60" @click="postponeAging">{{ t('game.aging.postpone') }}</button>
         </div>
       </div>
 
       <!-- 梦境之地（提示48第3条目） -->
       <div v-if="dreamWorldEntry && !s.finished" class="card p-5 border-purple-900/60">
-        <p class="text-xs tracking-[0.3em] opacity-50 mb-2">梦 境 之 地</p>
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-2">{{ t('game.dream.title') }}</p>
         <template v-if="!s.dreamWorld">
           <p class="text-sm opacity-85 leading-relaxed mb-3">
-            你可以抛弃现实，踏入梦境之地——留下所有角色、印记与资源（除一把银剑），回到提示 10，成为无印记的吸血鬼。
-            <span class="text-purple-300/80">若日后再度抵达此提示，你将醒来，永远无法返回。</span>
+            {{ t('game.dream.text') }}
+            <span class="text-purple-300/80">{{ t('game.dream.warn') }}</span>
           </p>
           <div class="flex flex-wrap gap-3">
-            <button class="btn btn-gold text-sm" @click="enterDream">🌙 踏入梦境之地</button>
-            <button class="btn btn-ghost text-sm" @click="takeDreamBook">留在现实 · 获得《一本奇幻梦境的手写书》</button>
+            <button class="btn btn-gold text-sm" @click="enterDream">{{ t('game.dream.enter') }}</button>
+            <button class="btn btn-ghost text-sm" @click="takeDreamBook">{{ t('game.dream.stay') }}</button>
           </div>
         </template>
         <template v-else>
-          <p class="text-sm opacity-85">你再次抵达此处——随即醒来，再也无法返回梦境。</p>
+          <p class="text-sm opacity-85">{{ t('game.dream.again') }}</p>
         </template>
       </div>
 
       <!-- 回答面板 -->
       <div v-if="!s.finished" class="card p-5">
-        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">回 答 提 示</p>
+        <p class="text-xs tracking-[0.3em] opacity-50 mb-3">{{ t('game.answer.title') }}</p>
 
         <div v-if="bypassExperience" class="mb-3 p-3 rounded border border-amber-900/40 bg-black/20 text-sm opacity-80">
-          ⚙ 系统裁定：本提示明确要求不创建经历——已自动跳过经历书写与记忆放置。
+          {{ t('game.bypass') }}
         </div>
 
         <div v-if="!bypassExperience">
-          <label class="block text-sm mb-2 opacity-80">这段经历（请写入某段记忆）</label>
+          <label class="block text-sm mb-2 opacity-80">{{ t('game.expLabel') }}</label>
           <textarea
             v-model="experienceText"
             class="input mb-3"
-            placeholder="好的经历格式——“[事件的描述]；[我对此的感受或做出的反应]”&#10;例如：我检查了荒野中被遗弃的白骨；我没有找到查尔斯，但我确实发现了武器和宝藏。"
+            :placeholder="t('game.expPh')"
           ></textarea>
 
           <!-- 经历放置抉择：追加到现有记忆，或新建一段记忆 -->
           <div class="mb-3 p-3 rounded border border-amber-900/40 bg-black/20">
-            <p class="text-xs tracking-widest opacity-50 mb-2">放 进 哪 段 记 忆</p>
+            <p class="text-xs tracking-widest opacity-50 mb-2">{{ t('game.place.title') }}</p>
             <label class="flex items-center gap-2 text-sm mb-1.5 opacity-90 cursor-pointer">
               <input type="radio" v-model="placementChoice" value="new" :disabled="!placement.canCreateNew" />
-              <span :class="{ 'opacity-40': !placement.canCreateNew }">新建一段记忆</span>
-              <span class="text-xs opacity-50">（剩余 {{ placement.freeSlots }} 槽）</span>
+              <span :class="{ 'opacity-40': !placement.canCreateNew }">{{ t('game.place.new') }}</span>
+              <span class="text-xs opacity-50">{{ t('game.place.slots', { n: placement.freeSlots }) }}</span>
             </label>
             <label v-for="m in placement.appendable" :key="m.id" class="flex items-center gap-2 text-sm mb-1.5 opacity-90 cursor-pointer">
               <input type="radio" v-model="placementChoice" :value="m.id" />
               <span class="truncate">{{ memoryLabel(m) }}</span>
-              <span class="text-xs opacity-50 shrink-0">（{{ m.experiences.length }}/3）</span>
+              <span class="text-xs opacity-50 shrink-0">{{ t('game.place.count', { n: m.experiences.length }) }}</span>
             </label>
 
             <!-- 满槽化解：必须遗忘或移入日记 -->
             <div v-if="placement.mustResolve" class="mt-2 p-3 rounded border border-red-900/60 bg-red-950/20">
-              <p class="text-xs text-red-300 mb-2">记忆已满——必须先遗忘一段记忆或将一段记忆移入日记，才能安放新的经历。</p>
+              <p class="text-xs text-red-300 mb-2">{{ t('game.place.full') }}</p>
               <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                 <div v-for="m in forgettableMemories" :key="m.id" class="flex items-center gap-2 text-xs">
                   <span class="flex-1 truncate">{{ memoryLabel(m) }}</span>
-                  <button class="px-2 py-0.5 rounded border border-cyan-900/60 text-cyan-200/80 shrink-0" @click="moveToDiaryFromGame(m.id)">入日记</button>
-                  <button class="px-2 py-0.5 rounded border border-red-900/60 text-red-300/90 shrink-0" @click="forgetFromGameView(m.id)">遗忘</button>
+                  <button class="px-2 py-0.5 rounded border border-cyan-900/60 text-cyan-200/80 shrink-0" @click="moveToDiaryFromGame(m.id)">{{ t('game.place.toDiary') }}</button>
+                  <button class="px-2 py-0.5 rounded border border-red-900/60 text-red-300/90 shrink-0" @click="forgetFromGameView(m.id)">{{ t('game.place.forget') }}</button>
                 </div>
               </div>
             </div>
@@ -410,16 +416,16 @@ function completeTurn() {
         </div>
 
         <div v-if="showDiaryEditor">
-          <label class="block text-sm mb-2 opacity-80">日记条目（日志游戏）</label>
+          <label class="block text-sm mb-2 opacity-80">{{ t('game.diaryLabel') }}</label>
           <textarea
             v-model="diaryText"
             class="input mb-4"
-            placeholder="以书面形式写下这一回合你的吸血鬼的遭遇……"
+            :placeholder="t('game.diaryPh')"
           ></textarea>
         </div>
 
         <button class="btn btn-gold w-full" :disabled="!canComplete" @click="completeTurn">
-          完成这一回合，掷出命运之骰
+          {{ t('game.complete') }}
         </button>
 
         <!-- P3-2：存在未处理效果时给出轻提示（引导而非强制） -->
@@ -427,7 +433,7 @@ function completeTurn() {
           v-if="!s.finished && effectStatus.total > 0 && effectStatus.done < effectStatus.total"
           class="mt-2 text-xs opacity-70 text-center italic"
         >
-          ⚠ 还有 {{ effectStatus.total - effectStatus.done }} 项效果未标记处理——可返回处理，或直接完成本回合
+          {{ t('game.pending', { n: effectStatus.total - effectStatus.done }) }}
         </p>
 
         <!-- 回合后信息 -->
@@ -436,9 +442,9 @@ function completeTurn() {
 
       <!-- 游戏结束 -->
       <div v-else class="card p-6 text-center border-red-900">
-        <h3 class="title-serif text-2xl blood-text m-0 mb-4">故事终结</h3>
+        <h3 class="title-serif text-2xl blood-text m-0 mb-4">{{ t('game.finishedTitle') }}</h3>
         <p class="opacity-80">{{ s.finishReason }}</p>
-        <button class="btn mt-6" @click="emit('navigate', 'home')">返回首页</button>
+        <button class="btn mt-6" @click="emit('navigate', 'home')">{{ t('game.backHome') }}</button>
       </div>
     </div>
 
@@ -451,8 +457,8 @@ function completeTurn() {
   <!-- 移动端底部工具条 -->
   <div v-if="!s.finished" class="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-amber-900/50 bg-[#14100e]/95 backdrop-blur px-4 py-2.5">
     <div class="flex items-center justify-center gap-6 text-sm">
-      <button class="btn btn-ghost text-xs px-5" @click="openDrawer('memory')">📋 特征</button>
-      <button class="btn btn-ghost text-xs px-5" @click="openDrawer('diary')">📖 日志</button>
+      <button class="btn btn-ghost text-xs px-5" @click="openDrawer('memory')">{{ t('game.mobile.traits') }}</button>
+      <button class="btn btn-ghost text-xs px-5" @click="openDrawer('diary')">{{ t('game.mobile.diary') }}</button>
     </div>
   </div>
 
@@ -465,8 +471,8 @@ function completeTurn() {
       <div class="absolute inset-0 bg-black/60" @click="drawerOpen = false"></div>
       <div class="absolute bottom-0 inset-x-0 max-h-[70svh] overflow-y-auto rounded-t-2xl border-t border-amber-900/50 bg-[#1a120e] shadow-2xl">
         <div class="sticky top-0 bg-[#1a120e]/95 backdrop-blur px-4 py-2.5 flex items-center justify-between border-b border-amber-900/40 z-10">
-          <span class="text-xs tracking-[0.3em] opacity-60">{{ drawerTab === 'diary' ? '日 志' : '特 征' }}</span>
-          <button class="btn btn-ghost text-xs" @click="drawerOpen = false">收起 ▾</button>
+          <span class="text-xs tracking-[0.3em] opacity-60">{{ drawerTab === 'diary' ? t('game.drawer.diary') : t('game.drawer.traits') }}</span>
+          <button class="btn btn-ghost text-xs" @click="drawerOpen = false">{{ t('game.drawer.close') }}</button>
         </div>
         <div class="p-3 pb-8">
           <TraitPanel :initial-tab="drawerTab" :lock-memory-ops="placement.mustResolve && !bypassExperience" />

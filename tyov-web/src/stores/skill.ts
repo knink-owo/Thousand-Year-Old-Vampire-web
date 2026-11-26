@@ -1,6 +1,7 @@
 /** 技能域动作（含"记忆转化为技能"） */
 import type { GameCtx } from './context';
 import { logText, uid } from './context';
+import { t } from '../i18n';
 
 export function createSkillActions(ctx: GameCtx) {
   const { state, persist } = ctx;
@@ -8,7 +9,7 @@ export function createSkillActions(ctx: GameCtx) {
   function addSkill(name: string, description?: string) {
     const s = state.value!;
     s.skills.push({ id: uid(), name, description, checked: false, lost: false });
-    s.log.push(logText('skill', `获得技能：${name}`, s.currentPromptNumber));
+    s.log.push(logText('skill', t('log.skill.gained', { name }), s.currentPromptNumber));
     persist();
   }
 
@@ -17,7 +18,7 @@ export function createSkillActions(ctx: GameCtx) {
     const sk = s.skills.find(x => x.id === id);
     if (!sk || sk.checked || sk.lost) return;
     sk.checked = true;
-    s.log.push(logText('skill', `勾选技能：${sk.name}（它已被使用过了）`, s.currentPromptNumber));
+    s.log.push(logText('skill', t('log.skill.checked', { name: sk.name }), s.currentPromptNumber));
     persist();
   }
 
@@ -35,7 +36,7 @@ export function createSkillActions(ctx: GameCtx) {
     const sk = s.skills.find(x => x.id === id);
     if (!sk || sk.lost) return;
     sk.lost = true;
-    s.log.push(logText('skill', `技能消失：${sk.name}`, s.currentPromptNumber));
+    s.log.push(logText('skill', t('log.skill.lost', { name: sk.name }), s.currentPromptNumber));
     persist();
   }
 
@@ -45,7 +46,7 @@ export function createSkillActions(ctx: GameCtx) {
     const sk = s.skills.find(x => x.id === id);
     if (!sk || sk.lost || !newName.trim()) return;
     sk.name = newName.trim();
-    s.log.push(logText('skill', `技能被重塑为：${sk.name}`, s.currentPromptNumber));
+    s.log.push(logText('skill', t('log.skill.rewritten', { name: sk.name }), s.currentPromptNumber));
     persist();
   }
 
@@ -55,8 +56,8 @@ export function createSkillActions(ctx: GameCtx) {
     const m = s.memories.find(x => x.id === memoryId);
     if (!m || m.stabilized || m.inDiary) return;
     m.forgotten = true;
-    addSkill(skillName.trim() || m.title || '来自记忆的技能');
-    s.log.push(logText('memory', `记忆「${m.title ?? '未命名'}」被转化为技能，不再占用记忆槽。`, s.currentPromptNumber));
+    addSkill(skillName.trim() || m.title || t('log.skill.fromMemoryDefault'));
+    s.log.push(logText('memory', t('log.skill.fromMemory', { name: m.title ?? t('panel.unnamedMemory') }), s.currentPromptNumber));
     persist();
   }
 

@@ -7,6 +7,7 @@ import {
   bindBackupFile, getBackupName, isFileProtocol, onBackupChange, supportsFileBackup, writeBackup,
 } from '../engine/fileBackup';
 import { savePack, createPersistence } from './persistence';
+import { t } from '../i18n';
 
 type Persistence = ReturnType<typeof createPersistence>;
 
@@ -55,10 +56,10 @@ export function createIoActions(ctx: GameCtx, persistence: Persistence) {
     const s = target ?? state.value;
     if (!s) return '';
     const lines: string[] = [];
-    lines.push(`# ${s.name} 的日记`);
+    lines.push(t('io.mdTitle', { name: s.name }));
     lines.push('');
     for (const d of s.diaries) {
-      lines.push(`## 提示 ${d.promptNumber}·第${d.entryIndex}次触达`);
+      lines.push(t('io.mdPrompt', { prompt: d.promptNumber, n: d.entryIndex }));
       lines.push(`> ${d.promptText}`);
       lines.push('');
       lines.push(d.content);

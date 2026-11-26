@@ -4,6 +4,7 @@
  * 用法：父组件维护 `ask: PromptState | null`，@ok 收到确认值后自行执行并置空，@cancel 置空。
  */
 import { ref, watch, nextTick } from 'vue'
+import { t } from '../i18n'
 
 export interface PromptState {
   title: string
@@ -53,7 +54,7 @@ function onKeydown(e: KeyboardEvent) {
       @click.self="emit('cancel')"
       @keydown="onKeydown"
     >
-      <div class="card p-6 w-full max-w-sm border-amber-900/60" role="dialog" aria-modal="true" aria-label="输入">
+      <div class="card p-6 w-full max-w-sm border-amber-900/60" role="dialog" aria-modal="true" :aria-label="t('common.inputAria')">
         <h4 class="title-serif text-xl gold-text mb-2">{{ state.title }}</h4>
         <p v-if="state.text" class="text-sm leading-relaxed opacity-80 mb-4">{{ state.text }}</p>
         <input
@@ -64,9 +65,9 @@ function onKeydown(e: KeyboardEvent) {
           @keydown.enter.prevent="submit"
         />
         <div class="flex gap-3 justify-end mt-5">
-          <button class="btn btn-ghost" @click="emit('cancel')">取消</button>
+          <button class="btn btn-ghost" @click="emit('cancel')">{{ t('common.cancel') }}</button>
           <button class="btn btn-gold" :disabled="!state.allowEmpty && !input.trim()" @click="submit">
-            {{ state.okLabel || '确定' }}
+            {{ state.okLabel || t('common.confirm') }}
           </button>
         </div>
       </div>

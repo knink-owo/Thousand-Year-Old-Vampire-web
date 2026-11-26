@@ -5,9 +5,13 @@ import type { Experience, Memory, Resource } from '../types/game';
 import {
   placeExperienceDecision, MAX_EXPERIENCES_PER_MEMORY, MAX_MEMORIES_PER_DIARY,
 } from '../engine/core';
+import { t } from '../i18n';
 
 export function createMemoryActions(ctx: GameCtx) {
   const { state, persist } = ctx;
+
+  /** 未命名记忆的显示名（随语言） */
+  const unnamed = () => t('panel.unnamedMemory');
 
   /**
    * 添加经历：
@@ -22,7 +26,7 @@ export function createMemoryActions(ctx: GameCtx) {
       const m = s.memories.find(x => x.id === memoryId);
       if (m && !m.inDiary && !m.stabilized && !m.forgotten && m.experiences.length < MAX_EXPERIENCES_PER_MEMORY) {
         m.experiences.push(exp);
-        s.log.push(logText('memory', `经历沉淀进记忆「${m.title ?? '未命名'}」。`, promptNumber));
+        s.log.push(logText('memory', t('log.mem.appended', { name: m.title ?? unnamed() }), promptNumber));
         persist();
         return { status: 'appended' };
       }
@@ -31,7 +35,7 @@ export function createMemoryActions(ctx: GameCtx) {
     if (placement.canCreateNew) {
       const m: Memory = { id: uid(), experiences: [exp], inDiary: false, stabilized: false };
       s.memories.push(m);
-      s.log.push(logText('memory', '一段新的记忆成形。', promptNumber));
+      s.log.push(logText('memory', t('log.mem.created'), promptNumber));
       persist();
       return { status: 'created' };
     }
@@ -39,7 +43,7 @@ export function createMemoryActions(ctx: GameCtx) {
       // 兜底：指定的记忆不可用但有可追加记忆时，追加到第一段，避免经历无处安放
       const m = s.memories.find(x => x.id === placement.appendable[0])!;
       m.experiences.push(exp);
-      s.log.push(logText('memory', `经历沉淀进记忆「${m.title ?? '未命名'}」。`, promptNumber));
+      s.log.push(logText('memory', t('log.mem.appended', { name: m.title ?? unnamed() }), promptNumber));
       persist();
       return { status: 'appended' };
     }
@@ -53,7 +57,7 @@ export function createMemoryActions(ctx: GameCtx) {
     const m = s.memories.find(x => x.id === memoryId);
     if (!m || m.stabilized || m.inDiary) return;
     m.forgotten = true;
-    s.log.push(logText('memory', `一段记忆被划掉——${m.title ?? '未命名的过往'}永远逝去。`, s.currentPromptNumber));
+    s.log.push(logText('memory', t('log.mem.forgotten', { name: m.title ?? unnamed() }), s.currentPromptNumber));
     persist();
   }
 
@@ -63,7 +67,7 @@ export function createMemoryActions(ctx: GameCtx) {
     const m = s.memories.find(x => x.id === memoryId);
     if (!m || m.stabilized) return;
     m.title = title.trim() || undefined;
-    s.log.push(logText('memory', m.title ? `记忆被命名为「${m.title}」。` : '一段记忆的名字被抹去。', s.currentPromptNumber));
+    s.log.push(logText('memory', m.title ? t('log.mem.renamed', { name: m.title }) : t('log.mem.renamedEmpty'), s.currentPromptNumber));
     persist();
   }
 
@@ -73,7 +77,7 @@ export function createMemoryActions(ctx: GameCtx) {
     const m = s.memories.find(x => x.id === memoryId);
     if (!m || m.inDiary || m.forgotten) return;
     m.stabilized = true;
-    s.log.push(logText('memory', `一段记忆被画上星号——「${m.title ?? '未命名'}」从此恒存，不再占用记忆槽。`, s.currentPromptNumber));
+    s.log.push(logText('memory', t('log.mem.stabilized', { name: m.title ?? unnamed() }), s.currentPromptNumber));
     persist();
   }
 
@@ -83,7 +87,7 @@ export function createMemoryActions(ctx: GameCtx) {
     const m = s.memories.find(x => x.id === memoryId);
     if (!m || !m.forgotten) return;
     m.forgotten = false;
-    s.log.push(logText('memory', `一段被遗忘的记忆重新浮现——「${m.title ?? '未命名'}」。`, s.currentPromptNumber));
+    s.log.push(logText('memory', t('log.mem.restored', { name: m.title ?? unnamed() }), s.currentPromptNumber));
     persist();
   }
 
@@ -94,7 +98,7 @@ export function createMemoryActions(ctx: GameCtx) {
       const idx = m.experiences.findIndex(x => x.id === experienceId);
       if (idx >= 0) {
         const [removed] = m.experiences.splice(idx, 1);
-        s.log.push(logText('memory', `一段经历被抹去——${removed.text.slice(0, 24)}…`, s.currentPromptNumber));
+        s.log.push(logText('memory', t('log.mem.expRemoved', { text: removed.text.slice(0, 24) }), s.currentPromptNumber));
         persist();
         return;
       }
@@ -108,7 +112,7 @@ export function createMemoryActions(ctx: GameCtx) {
       const ex = m.experiences.find(x => x.id === experienceId);
       if (ex) {
         ex.text = text;
-        s.log.push(logText('memory', '经历被改写。', s.currentPromptNumber));
+        s.log.push(logText('memory', t('log.mem.expEdited'), s.currentPromptNumber));
         persist();
         return;
       }
@@ -124,7 +128,9 @@ export function createMemoryActions(ctx: GameCtx) {
     const pool = mid.experiences.filter(x => !x.lost);
     const ex = pool[Math.floor(Math.random() * pool.length)];
     ex.lost = true;
-    s.log.push(logText('memory', `一段经历被命运划去——${ex.text.slice(0, 24)}${ex.text.length > 24 ? '…' : ''}`, s.currentPromptNumber));
+    s.log.push(logText('memory', t('log.mem.expLostRandom', {
+      text: ex.text.slice(0, 24) + (ex.text.length > 24 ? '…' : ''),
+    }), s.currentPromptNumber));
     persist();
   }
 
@@ -135,7 +141,7 @@ export function createMemoryActions(ctx: GameCtx) {
       const ex = m.experiences.find(x => x.id === experienceId);
       if (ex && ex.lost) {
         ex.lost = false;
-        s.log.push(logText('memory', '一段被划去的经历重新被记起。', s.currentPromptNumber));
+        s.log.push(logText('memory', t('log.mem.expRestored'), s.currentPromptNumber));
         persist();
         return;
       }
@@ -148,7 +154,7 @@ export function createMemoryActions(ctx: GameCtx) {
     const next = Math.max(1, s.memorySlots + delta);
     if (next === s.memorySlots) return;
     s.memorySlots = next;
-    s.log.push(logText('memory', delta > 0 ? `记忆槽增加，现有 ${next} 个记忆槽。` : `身体离人类更远——记忆槽永久减少为 ${next} 个。`, s.currentPromptNumber));
+    s.log.push(logText('memory', delta > 0 ? t('log.mem.slotGain', { n: next }) : t('log.mem.slotLoss', { n: next }), s.currentPromptNumber));
     persist();
   }
 
@@ -161,12 +167,12 @@ export function createMemoryActions(ctx: GameCtx) {
     const inDiary = s.memories.filter(x => x.inDiary).length;
     if (inDiary >= diaryCapacity) return;
     if (!s.diaryResourceId) {
-      const res: Resource = { id: uid(), name: diaryName || '一本结实的皮革装订书', fixed: false, lost: false, isDiary: true };
+      const res: Resource = { id: uid(), name: diaryName || t('memory.diaryDefaultName'), fixed: false, lost: false, isDiary: true };
       s.resources.push(res);
       s.diaryResourceId = res.id;
     }
     m.inDiary = true;
-    s.log.push(logText('memory', `记忆「${m.title ?? '未命名'}」被写入日记，不再占用记忆槽。`, s.currentPromptNumber));
+    s.log.push(logText('memory', t('log.mem.toDiary', { name: m.title ?? unnamed() }), s.currentPromptNumber));
     persist();
   }
 

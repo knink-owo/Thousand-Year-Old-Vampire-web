@@ -3,7 +3,9 @@
  * 数据层与引擎/UI 解耦 —— 玩家可导入自定义/社区提示包。
  */
 import type { PromptPack, Prompt, PromptEntry, Effect } from '../types/game';
-import officialRaw from '../data/official-pack.json';
+import officialZhRaw from '../data/official-pack.json';
+import officialEnRaw from '../data/official-pack.en.json';
+import type { Locale } from '../i18n';
 
 interface RawPrompt {
   number: number;
@@ -117,7 +119,15 @@ function normalizePack(raw: RawPack): PromptPack {
   };
 }
 
-export const officialPack: PromptPack = normalizePack(officialRaw as unknown as RawPack);
+const zhPack: PromptPack = normalizePack(officialZhRaw as unknown as RawPack);
+const enPack: PromptPack = normalizePack(officialEnRaw as unknown as RawPack);
+
+/** 内置提示包（按语言）；两包结构完全对等，见 pack.parity.test.ts */
+export const officialPacks: Record<Locale, PromptPack> = { zh: zhPack, en: enPack };
+
+export function officialPackFor(locale: Locale): PromptPack {
+  return officialPacks[locale] ?? zhPack;
+}
 
 /** 从 JSON 字符串导入提示包 */
 export function parsePromptPack(json: string): PromptPack {

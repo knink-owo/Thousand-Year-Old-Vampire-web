@@ -4,6 +4,7 @@
  * state.okOnly = true 时仅显示"知道了"（替代 alert）。
  */
 import { ref, watch, nextTick } from 'vue'
+import { t } from '../i18n'
 
 export interface ConfirmState {
   text: string
@@ -38,12 +39,12 @@ function onKeydown(e: KeyboardEvent) {
       @click.self="state.okOnly ? emit('ok') : emit('cancel')"
       @keydown="onKeydown"
     >
-      <div class="card p-6 w-full max-w-sm border-red-900/60" role="alertdialog" aria-modal="true" aria-label="确认操作">
-        <h4 class="title-serif text-xl blood-text mb-3">{{ state.okOnly ? '须知' : '你确定吗？' }}</h4>
+      <div class="card p-6 w-full max-w-sm border-red-900/60" role="alertdialog" aria-modal="true" :aria-label="t('panel.confirmAria')">
+        <h4 class="title-serif text-xl blood-text mb-3">{{ state.okOnly ? t('common.notice') : t('panel.confirmTitle') }}</h4>
         <p class="text-sm leading-relaxed opacity-85 mb-5 whitespace-pre-wrap">{{ state.text }}</p>
         <div class="flex gap-3 justify-end">
-          <button v-if="!state.okOnly" class="btn btn-ghost" @click="emit('cancel')">取消</button>
-          <button class="btn btn-danger" @click="emit('ok')">{{ state.okLabel || (state.okOnly ? '知道了' : '确认') }}</button>
+          <button v-if="!state.okOnly" class="btn btn-ghost" @click="emit('cancel')">{{ t('common.cancel') }}</button>
+          <button class="btn btn-danger" @click="emit('ok')">{{ state.okLabel || (state.okOnly ? t('common.ok') : t('common.confirm')) }}</button>
         </div>
       </div>
     </div>

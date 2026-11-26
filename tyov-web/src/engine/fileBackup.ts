@@ -6,6 +6,8 @@
 // （File System Access API），此后每次存档都额外静默写入该文件。
 // 说明：FileSystemFileHandle 无法序列化，因此每次会话需重新绑定；备份文件本身持久存在。
 
+import { t } from '../i18n'
+
 /** 是否以 file:// 协议打开（单文件双击场景） */
 export function isFileProtocol(): boolean {
   try {
@@ -50,10 +52,10 @@ export async function bindBackupFile(): Promise<boolean> {
     const picker = (window as unknown as { showSaveFilePicker: ShowSaveFilePicker }).showSaveFilePicker
     const h = await picker({
       // 固定文件名：避免每次重绑时因日期变化而"分叉"出多个备份文件
-      suggestedName: '千年吸血鬼存档.tyov.json',
+      suggestedName: t('io.backupFileName'),
       types: [
         {
-          description: '千年吸血鬼存档',
+          description: t('io.backupFileDesc'),
           accept: { 'application/json': ['.json'] },
         },
       ],

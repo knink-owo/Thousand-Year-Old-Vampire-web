@@ -7,6 +7,7 @@ import {
 } from '../engine/effectActions'
 import PromptDialog, { type PromptState } from './PromptDialog.vue'
 import type { Memory, Skill, Resource, Character, Mark } from '../types/game'
+import { t, type MsgKey } from '../i18n'
 
 const store = useGameStore()
 const props = defineProps<{ entryIndex: number }>()
@@ -100,6 +101,23 @@ function perform(idx: number, fn: () => void) {
   fn()
 }
 
+/** 效果引导文案（hintKey 可能缺省） */
+function hintOf(fx: Parameters<typeof effectActionSpec>[0]): string {
+  const key = effectActionSpec(fx).hintKey
+  return key ? t(key) : ''
+}
+function placeholderOf(fx: Parameters<typeof effectActionSpec>[0]): string {
+  const key = effectActionSpec(fx).placeholderKey
+  return key ? t(key) : ''
+}
+const kindKey: Record<string, MsgKey> = {
+  memory: 'effects.kind.memory',
+  skill: 'effects.kind.skill',
+  resource: 'effects.kind.resource',
+  character: 'effects.kind.character',
+  mark: 'effects.kind.mark',
+}
+
 // ---- 候选列表（按 filter） ----
 type CandidateRow = { id: string; label: string; sub?: string }
 
@@ -122,7 +140,7 @@ function candidatesFor(idx: number): CandidateRow[] {
           default: return !m.forgotten
         }
       })
-      return list.map((m, i) => ({ id: m.id, label: m.title || m.experiences[0]?.text?.slice(0, 26) || `记忆${i + 1}`, sub: m.experiences.length + '/3' }))
+      return list.map((m, i) => ({ id: m.id, label: m.title || m.experiences[0]?.text?.slice(0, 26) || t('effects.memoryDefault', { n: i + 1 }), sub: m.experiences.length + '/3' }))
     }
     case 'skill': {
       const list = s.skills.filter((sk: Skill) => {
@@ -144,7 +162,7 @@ function candidatesFor(idx: number): CandidateRow[] {
           default: return !r.lost
         }
       })
-      return list.map(r => ({ id: r.id, label: r.name, sub: r.fixed ? '固定' : r.lost ? '已失去' : undefined }))
+      return list.map(r => ({ id: r.id, label: r.name, sub: r.fixed ? t('effects.sub.fixed') : r.lost ? t('effects.sub.lost') : undefined }))
     }
     case 'character': {
       const list = s.characters.filter((c: Character) => {
@@ -156,7 +174,7 @@ function candidatesFor(idx: number): CandidateRow[] {
           default: return !c.dead
         }
       })
-      return list.map(c => ({ id: c.id, label: c.name, sub: c.immortal ? '不朽者' : '凡人' }))
+      return list.map(c => ({ id: c.id, label: c.name, sub: c.immortal ? t('effects.sub.immortal') : t('effects.sub.mortal') }))
     }
     case 'mark': {
       const list = s.marks.filter((m: Mark) => (sp.filter === 'kept' ? !m.removed : true))
@@ -206,7 +224,7 @@ const fallbackTargets = computed(() => {
   const fx = effects.value[idx]
   const fbs = fallbackOf(fx)
   return fbs
-    .map(t => ({ type: t, index: effects.value.findIndex(e => e.type === t) }))
+    .map(tp => ({ type: tp, index: effects.value.findIndex(e => e.type === tp) }))
     .filter(x => x.index >= 0 && x.type !== fx.type)
 })
 function jumpToFallback(fbIdx: number) {
@@ -236,9 +254,9 @@ function onSelect(idx: number, id: string) {
   if (fx.type === 'memoryToSkill') {
     const m = s.memories.find(x => x.id === id)!
     ask.value = {
-      title: '将一段记忆转化为技能',
-      text: `「${m.title || '未命名的记忆'}」将被划掉，不再占用记忆槽。技能叫什么？`,
-      placeholder: '新技能名',
+      title: t('effects.ask.memoryToSkillTitle'),
+      text: t('effects.ask.memoryToSkillText', { name: m.title || t('panel.unnamedMemory') }),
+      placeholder: t('effects.ask.skillName'),
       initial: m.title ?? '',
       onOk: (v) => {
         if (!v.trim()) return
@@ -250,9 +268,9 @@ function onSelect(idx: number, id: string) {
   if (fx.type === 'rewriteSkill') {
     const sk = s.skills.find(x => x.id === id)!
     ask.value = {
-      title: '重写这项技能',
-      text: `将「${sk.name}」重写为一项新技能。新名字是？`,
-      placeholder: '新技能名',
+      title: t('effects.ask.rewriteSkillTitle'),
+      text: t('effects.ask.rewriteSkillText', { name: sk.name }),
+      placeholder: t('effects.ask.skillName'),
       initial: sk.name,
       onOk: (v) => {
         if (!v.trim()) return
@@ -264,9 +282,9 @@ function onSelect(idx: number, id: string) {
   if (fx.type === 'swapResource') {
     const r = s.resources.find(x => x.id === id)
     ask.value = {
-      title: '以旧换新',
-      text: `放弃「${r?.name ?? ''}」，换入一项当代资源。新的资源是？`,
-      placeholder: '新资源名',
+      title: t('effects.ask.swapResourceTitle'),
+      text: t('effects.ask.swapResourceText', { name: r?.name ?? '' }),
+      placeholder: t('effects.ask.resourceName'),
       initial: '',
       onOk: (v) => {
         if (!v.trim()) return
@@ -278,14 +296,14 @@ function onSelect(idx: number, id: string) {
   if (fx.type === 'characterToResource') {
     const c = s.characters.find(x => x.id === id)!
     ask.value = {
-      title: '角色化为资源',
-      text: `「${c.name}」将变为一件由你供养的不死之物。它作为资源的名称是？`,
-      placeholder: '资源名',
-      initial: `${c.name}（被转化）`,
+      title: t('effects.ask.characterToResourceTitle'),
+      text: t('effects.ask.characterToResourceText', { name: c.name }),
+      placeholder: t('effects.ask.resourceName'),
+      initial: c.name + t('effects.ask.convertedSuffix'),
       allowEmpty: true,
       onOk: (v) => {
-        const t = v.trim()
-        perform(idx, () => { store.characterToResource(id, t || undefined); markOne(idx) })
+        const name = v.trim()
+        perform(idx, () => { store.characterToResource(id, name || undefined); markOne(idx) })
       },
     }
     return
@@ -362,8 +380,8 @@ watch(doneTotal, (p) => emit('progress', p), { immediate: true })
 <template>
   <div v-if="effects.length" class="card p-5 border-amber-900/40">
     <div class="flex items-center justify-between mb-3">
-      <p class="text-xs tracking-[0.3em] opacity-50">效 果 执 行</p>
-      <span v-if="allDone" class="text-xs text-emerald-300/90">✓ 已全部处理</span>
+      <p class="text-xs tracking-[0.3em] opacity-50">{{ t('effects.title') }}</p>
+      <span v-if="allDone" class="text-xs text-emerald-300/90">{{ t('effects.allDone') }}</span>
       <span v-else class="text-xs opacity-40">{{ effects.filter((_, i) => isDone(i) && !isExcluded(i)).length }}/{{ effects.filter((_, i) => !isExcluded(i)).length }}</span>
     </div>
 
@@ -373,7 +391,7 @@ watch(doneTotal, (p) => emit('progress', p), { immediate: true })
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2 flex-wrap">
             <!-- 互斥淘汰：不适用（有可用角色时"创造凡人角色"按规则书跳过） -->
-            <span v-if="isExcluded(i)" class="opacity-40 italic">「{{ effectText(fx) }}」不适用（规则书：有可用目标时无需执行）</span>
+            <span v-if="isExcluded(i)" class="opacity-40 italic">{{ t('effects.unavailable', { name: effectText(fx) }) }}</span>
             <span v-else :class="{ 'opacity-50 line-through': isDone(i) }">{{ effectText(fx) }}</span>
             <span v-if="!isExcluded(i)" class="flex items-center gap-2 shrink-0">
               <span v-if="isDone(i) && !isExcluded(i)" class="text-emerald-300/80 text-xs">✓</span>
@@ -382,33 +400,33 @@ watch(doneTotal, (p) => emit('progress', p), { immediate: true })
                 <button
                   v-if="rowSnapshots[i]"
                   class="text-xs opacity-60 hover:opacity-100 border border-amber-900/40 rounded px-1.5 py-0.5"
-                  title="撤销这一条效果（可重新执行）"
+                  :title="t('effects.undoTip')"
                   @click="undoRow(i)"
-                >撤回</button>
+                >{{ t('effects.undo') }}</button>
               </template>
               <template v-else-if="effectActionSpec(fx).mode === 'auto'">
-                <button class="btn btn-ghost text-xs" @click="runAuto(i)">执行</button>
+                <button class="btn btn-ghost text-xs" @click="runAuto(i)">{{ t('effects.run') }}</button>
               </template>
               <template v-else-if="effectActionSpec(fx).mode === 'select'">
                 <button class="btn btn-ghost text-xs" @click="togglePanel(i)">
-                  {{ openPanel === i ? '收起' : '选择 ▾' }}
+                  {{ openPanel === i ? t('effects.collapse') : t('effects.select') }}
                 </button>
               </template>
               <template v-else-if="effectActionSpec(fx).mode === 'input'">
                 <button class="btn btn-ghost text-xs" @click="togglePanel(i)">
-                  {{ openPanel === i ? '收起' : '填写 ▾' }}
+                  {{ openPanel === i ? t('effects.collapse') : t('effects.input') }}
                 </button>
               </template>
               <template v-else-if="effectActionSpec(fx).mode === 'manual'">
-                <button class="btn btn-ghost text-xs" @click="emit('gotoTab', manualTabOf(fx) ?? 'memory')">去面板</button>
-                <button class="text-xs opacity-50 hover:opacity-90" @click="markOne(i)">已了解</button>
+                <button class="btn btn-ghost text-xs" @click="emit('gotoTab', manualTabOf(fx) ?? 'memory')">{{ t('effects.gotoPanel') }}</button>
+                <button class="text-xs opacity-50 hover:opacity-90" @click="markOne(i)">{{ t('effects.ack') }}</button>
               </template>
               <template v-else-if="effectActionSpec(fx).mode === 'read'">
-                <button class="text-xs opacity-50 hover:opacity-90" @click="markOne(i)">已知晓</button>
+                <button class="text-xs opacity-50 hover:opacity-90" @click="markOne(i)">{{ t('effects.known') }}</button>
               </template>
             </span>
           </div>
-          <p v-if="effectActionSpec(fx).hint && !isDone(i)" class="text-xs opacity-50 mt-0.5">{{ effectActionSpec(fx).hint }}</p>
+          <p v-if="hintOf(fx) && !isDone(i)" class="text-xs opacity-50 mt-0.5">{{ hintOf(fx) }}</p>
 
           <!-- 候选浮层（在内容列内纵向展开） -->
           <div v-if="openPanel === i && effectActionSpec(fx).mode === 'select'" class="mt-2">
@@ -423,13 +441,13 @@ watch(doneTotal, (p) => emit('progress', p), { immediate: true })
                 <span v-if="c.sub" class="text-xs opacity-50 shrink-0">{{ c.sub }}</span>
               </button>
               <p v-if="candidates.length === 0" class="text-xs italic opacity-50 px-2 py-1">
-                没有可选的{{ { memory: '记忆', skill: '技能', resource: '资源', character: '角色', mark: '印记' }[effectActionSpec(fx).target!] }}。
+                {{ t('effects.noCandidate', { kind: t(kindKey[effectActionSpec(fx).target!]) }) }}
               </p>
             </div>
 
             <!-- 互斥替代建议（规则书"如果没有X，就Y"） -->
             <div v-if="candidates.length === 0 && fallbackTargets.length" class="mt-2 p-2 rounded border border-amber-700/50 bg-amber-950/20">
-              <p class="text-xs opacity-80 mb-1.5">规则书指示：无可用目标时改而——</p>
+              <p class="text-xs opacity-80 mb-1.5">{{ t('effects.fallbackTitle') }}</p>
               <button
                 v-for="fb in fallbackTargets"
                 :key="fb.type"
@@ -442,14 +460,14 @@ watch(doneTotal, (p) => emit('progress', p), { immediate: true })
 
             <!-- P1-2：无任何适用目标（且无替代建议）时，允许按规则跳过并标记完成 -->
             <div v-if="candidates.length === 0 && fallbackTargets.length === 0" class="mt-2">
-              <button class="btn btn-ghost text-xs" @click="markOne(i)">无适用目标，跳过此效果</button>
+              <button class="btn btn-ghost text-xs" @click="markOne(i)">{{ t('effects.skip') }}</button>
             </div>
           </div>
 
           <!-- 输入浮层（在内容列内纵向展开） -->
           <div v-if="openPanel === i && effectActionSpec(fx).mode === 'input'" class="mt-2 flex gap-2">
-            <input v-model="inputText" class="input text-sm flex-1 min-w-0" :placeholder="effectActionSpec(fx).inputPlaceholder" @keyup.enter="submitInput(i)" />
-            <button class="btn btn-ghost text-xs shrink-0" :disabled="!inputText.trim()" @click="submitInput(i)">确认</button>
+            <input v-model="inputText" class="input text-sm flex-1 min-w-0" :placeholder="placeholderOf(fx)" @keyup.enter="submitInput(i)" />
+            <button class="btn btn-ghost text-xs shrink-0" :disabled="!inputText.trim()" @click="submitInput(i)">{{ t('effects.confirm') }}</button>
           </div>
         </div>
       </li>

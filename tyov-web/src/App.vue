@@ -8,6 +8,8 @@ import FinishView from './views/FinishView.vue'
 import TutorialView from './views/TutorialView.vue'
 import HistoryView from './views/HistoryView.vue'
 import ReviewView from './views/ReviewView.vue'
+import LangSwitch from './components/LangSwitch.vue'
+import { t } from './i18n'
 import { trackView } from './analytics'
 
 const store = useGameStore()
@@ -55,7 +57,7 @@ function exportSaveNow() {
   const blob = new Blob([json], { type: 'application/json;charset=utf-8' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `${store.state.name ?? 'vampire'}-存档.json`
+  a.download = t('app.saveFileName', { name: store.state.name ?? t('app.fallbackName') })
   a.click()
   setTimeout(() => URL.revokeObjectURL(a.href), 4000)
 }
@@ -82,27 +84,27 @@ async function bindBackup() {
       class="relative bg-amber-950/70 border-b border-amber-700/50 text-amber-100 text-sm px-4 py-2.5 text-center flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
       role="note"
     >
-      <span>📄 本地文件模式：浏览器对 file:// 的自动存档可能不稳定。</span>
+      <span>{{ t('app.file.text') }}</span>
       <template v-if="store.backupSupported">
         <button
           class="underline decoration-dotted underline-offset-2 hover:text-amber-300 transition-colors bg-transparent border-none cursor-pointer p-0"
           @click="bindBackup"
         >
-          {{ store.backupFileName ? `已绑定备份：${store.backupFileName}` : '绑定自动备份文件' }}
+          {{ store.backupFileName ? t('app.file.bound', { name: store.backupFileName }) : t('app.file.bind') }}
         </button>
       </template>
-      <span v-else class="opacity-80">建议定期导出 JSON 备份。</span>
+      <span v-else class="opacity-80">{{ t('app.file.hint') }}</span>
       <button
         v-if="store.state"
         class="underline decoration-dotted underline-offset-2 hover:text-amber-300 transition-colors bg-transparent border-none cursor-pointer p-0"
         @click="exportSaveNow"
       >
-        导出存档 JSON
+        {{ t('app.file.export') }}
       </button>
       <button
         class="absolute right-2 top-1/2 -translate-y-1/2 text-amber-300/70 hover:text-amber-100 transition-colors bg-transparent border-none cursor-pointer p-1 leading-none"
-        title="收起（本次会话不再显示）"
-        aria-label="收起提示"
+        :title="t('app.file.dismiss')"
+        :aria-label="t('app.file.dismissLabel')"
         @click="fileNoticeDismissed = true"
       >
         ✕
@@ -113,13 +115,16 @@ async function bindBackup() {
     <header class="pt-6 pb-2 px-4">
       <div class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
         <button class="title-serif text-2xl md:text-3xl gold-text tracking-[0.15em] bg-transparent border-none cursor-pointer p-0" @click="navigate('home')">
-          千年<span class="blood-text">吸血鬼</span>
+          {{ t('app.brand1') }}<span class="blood-text">{{ t('app.brand2') }}</span>
         </button>
-        <nav v-if="showNav" class="flex items-center gap-2 text-sm">
-          <button class="btn btn-ghost text-xs" @click="navigate('home')">首页</button>
-          <button class="btn btn-ghost text-xs" @click="navigate('tutorial')">教程</button>
-          <button class="btn btn-ghost text-xs" @click="navigate('history')">历史</button>
-        </nav>
+        <div class="flex items-center gap-3">
+          <nav v-if="showNav" class="flex items-center gap-2 text-sm">
+            <button class="btn btn-ghost text-xs" @click="navigate('home')">{{ t('app.nav.home') }}</button>
+            <button class="btn btn-ghost text-xs" @click="navigate('tutorial')">{{ t('app.nav.tutorial') }}</button>
+            <button class="btn btn-ghost text-xs" @click="navigate('history')">{{ t('app.nav.history') }}</button>
+          </nav>
+          <LangSwitch />
+        </div>
       </div>
       <div class="blood-divider mt-5 mx-auto max-w-6xl"></div>
     </header>
@@ -136,17 +141,17 @@ async function bindBackup() {
 
     <footer class="pb-8 text-center text-xs opacity-60 px-4 space-y-1">
       <p>
-        改编自 <strong>《Thousand Year Old Vampire》</strong>（作者：Tim Hutchings）
-        · <a class="underline hover:text-red-300 transition-colors" href="https://timhutchings.itch.io/tyov" target="_blank" rel="noopener">官方页面（itch.io）</a>
+        {{ t('app.footer.adapted') }} <strong>Thousand Year Old Vampire</strong>{{ t('app.footer.author') }}
+        · <a class="underline hover:text-red-300 transition-colors" href="https://timhutchings.itch.io/tyov" target="_blank" rel="noopener">{{ t('app.footer.official') }}</a>
         · <a class="underline hover:text-red-300 transition-colors" href="https://www.thousandyearoldvampire.com/" target="_blank" rel="noopener">thousandyearoldvampire.com</a>
       </p>
-      <p>本工具为个人学习与游玩而作，全部游戏内容版权归原作者所有 · 侵删</p>
+      <p>{{ t('app.footer.credit') }}</p>
       <p class="pt-1">
-        若喜欢这个工具，欢迎到
-        <a class="underline hover:text-red-300 transition-colors" href="https://github.com/knink-owo/Thousand-Year-Old-Vampire-web" target="_blank" rel="noopener">GitHub 仓库</a>
-        留下一颗星 ⭐
+        {{ t('app.footer.starBefore') }}
+        <a class="underline hover:text-red-300 transition-colors" href="https://github.com/knink-owo/Thousand-Year-Old-Vampire-web" target="_blank" rel="noopener">{{ t('app.footer.starLink') }}</a>
+        {{ t('app.footer.starAfter') }}
       </p>
-      <p class="opacity-60">你的旅程只保存在本机 · 可离线游玩</p>
+      <p class="opacity-60">{{ t('app.footer.local') }}</p>
     </footer>
   </div>
 </template>

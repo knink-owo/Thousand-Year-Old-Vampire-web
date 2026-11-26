@@ -1,6 +1,7 @@
 /** 资源域动作（含日记实体、固定资源、神器标记） */
 import type { GameCtx } from './context';
 import { logText, uid } from './context';
+import { t } from '../i18n';
 
 export function createResourceActions(ctx: GameCtx) {
   const { state, persist } = ctx;
@@ -8,7 +9,7 @@ export function createResourceActions(ctx: GameCtx) {
   function addResource(name: string, description?: string, fixed = false) {
     const s = state.value!;
     s.resources.push({ id: uid(), name, description, fixed, lost: false, isDiary: false });
-    s.log.push(logText('resource', `获得资源：${name}${fixed ? '（固定）' : ''}`, s.currentPromptNumber));
+    s.log.push(logText('resource', fixed ? t('log.res.gainedFixed', { name }) : t('log.res.gained', { name }), s.currentPromptNumber));
     persist();
   }
 
@@ -26,9 +27,9 @@ export function createResourceActions(ctx: GameCtx) {
         }
       }
       s.diaryResourceId = undefined;
-      s.log.push(logText('resource', `日记「${r.name}」丢失或毁灭——写于其中的记忆随之被划掉。`, s.currentPromptNumber));
+      s.log.push(logText('resource', t('log.res.diaryLost', { name: r.name }), s.currentPromptNumber));
     } else {
-      s.log.push(logText('resource', `失去资源：${r.name}`, s.currentPromptNumber));
+      s.log.push(logText('resource', t('log.res.lost', { name: r.name }), s.currentPromptNumber));
     }
     persist();
   }
@@ -38,9 +39,9 @@ export function createResourceActions(ctx: GameCtx) {
     const s = state.value!;
     const r = s.resources.find(x => x.id === id);
     if (!r || r.lost) return;
-    r.name = `${r.name}（已成废墟）`;
+    r.name = r.name + t('log.res.ruinSuffix');
     r.fixed = true;
-    s.log.push(logText('resource', `资源被降级为废墟：${r.name}`, s.currentPromptNumber));
+    s.log.push(logText('resource', t('log.res.degraded', { name: r.name }), s.currentPromptNumber));
     persist();
   }
 
@@ -50,7 +51,7 @@ export function createResourceActions(ctx: GameCtx) {
     const r = s.resources.find(x => x.id === id);
     if (!r || !r.lost) return;
     r.lost = false;
-    s.log.push(logText('resource', `失而复得：${r.name}`, s.currentPromptNumber));
+    s.log.push(logText('resource', t('log.res.retrieved', { name: r.name }), s.currentPromptNumber));
     persist();
   }
 
@@ -61,7 +62,7 @@ export function createResourceActions(ctx: GameCtx) {
     if (!r || r.lost || !r.fixed) return;
     r.fixed = false;
     if (newName?.trim()) r.name = newName.trim();
-    s.log.push(logText('resource', `固定资源转为便携财宝：${r.name}`, s.currentPromptNumber));
+    s.log.push(logText('resource', t('log.res.portable', { name: r.name }), s.currentPromptNumber));
     persist();
   }
 
@@ -72,7 +73,7 @@ export function createResourceActions(ctx: GameCtx) {
     if (!r || r.lost || !newName.trim()) return;
     r.lost = true;
     addResource(newName.trim());
-    s.log.push(logText('resource', `用${r.name}换取了${newName.trim()}。`, s.currentPromptNumber));
+    s.log.push(logText('resource', t('log.res.swapped', { name: r.name, newName: newName.trim() }), s.currentPromptNumber));
     persist();
   }
 
@@ -91,7 +92,7 @@ export function createResourceActions(ctx: GameCtx) {
     const r = s.resources.find(x => x.id === id);
     if (!r || r.isDiary) return;
     r.artifact = !r.artifact;
-    s.log.push(logText('resource', r.artifact ? `「${r.name}」被确认为神器——它关系着你的结局。` : `「${r.name}」不再被视为神器。`, s.currentPromptNumber));
+    s.log.push(logText('resource', r.artifact ? t('log.res.artifactOn', { name: r.name }) : t('log.res.artifactOff', { name: r.name }), s.currentPromptNumber));
     persist();
   }
 

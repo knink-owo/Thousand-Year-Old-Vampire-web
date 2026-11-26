@@ -13,7 +13,7 @@
  *  - io.ts           导入导出、本地备份文件、放弃旅程、新游戏
  */
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { GameState, PromptPack } from '../types/game';
 import { findPrompt } from '../engine/packLoader';
 import { entryIndexFor, visitsOf } from '../engine/core';
@@ -26,13 +26,14 @@ import { createResourceActions } from './resource';
 import { createCharacterActions } from './character';
 import { createMarkActions } from './mark';
 import { createIoActions } from './io';
+import { locale, t } from '../i18n';
 
 // 保留原有对外导出（测试与视图从这里引用）
 export { createEmptyGame } from './context';
 export { isStorageAvailable } from './persistence';
 
 export const useGameStore = defineStore('game', () => {
-  const pack = ref<PromptPack>(loadPack());
+  const pack = ref<PromptPack>(loadPack(locale.value));
   const state = ref<GameState | null>(null);
 
   const currentPrompt = computed(() => {
@@ -68,11 +69,16 @@ export const useGameStore = defineStore('game', () => {
   const turn = createTurnActions(ctx);
   const io = createIoActions(ctx, persistence);
 
+  // 语言切换 → 换装提示包（提示号与已访问次数不变，正文按新语言渲染）
+  watch(locale, (l) => {
+    pack.value = loadPack(l);
+  });
+
   // ---------- 启动时恢复 ----------
   const saved = loadSavedGame();
   if (saved) state.value = saved;
   if (!isStorageAvailable() && !persistence.storageWarning.value) {
-    persistence.storageWarning.value = '本地存储不可用（隐私模式或浏览器禁用了站点数据）——进度无法自动保存，你仍可游玩，但刷新后进度将丢失。可随时「导出存档 JSON」备份。';
+    persistence.storageWarning.value = t('warn.noStorage');
   }
 
   return {

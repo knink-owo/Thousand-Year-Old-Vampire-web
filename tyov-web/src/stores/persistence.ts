@@ -5,7 +5,9 @@
  */
 import { ref, type Ref } from 'vue';
 import type { GameState, GameRecord, PromptPack } from '../types/game';
-import { officialPack } from '../engine/packLoader';
+import { officialPackFor } from '../engine/packLoader';
+import { t } from '../i18n';
+import type { Locale } from '../i18n';
 import { writeBackup } from '../engine/fileBackup';
 
 const SAVE_KEY = 'tyov:save:v1';
@@ -60,15 +62,16 @@ export function isStorageAvailable(): boolean {
   return storageAvailable;
 }
 
-export function loadPack(): PromptPack {
+/** 提示包解析：玩家导入的包只在其自身语言下生效，否则回落内置包 */
+export function loadPack(locale: Locale = 'zh'): PromptPack {
   try {
     const raw = safeGet(PACK_KEY);
     if (raw) {
       const p = JSON.parse(raw) as PromptPack;
-      if (p?.prompts?.length) return p;
+      if (p?.prompts?.length && p.meta?.language === locale) return p;
     }
   } catch { /* ignore */ }
-  return officialPack;
+  return officialPackFor(locale);
 }
 
 export function savePack(pack: PromptPack): void {
@@ -125,11 +128,11 @@ export function createPersistence({ state }: PersistenceDeps) {
       // 已绑定备份文件时，额外静默写入（单文件 file:// 场景的可靠持久化）
       void writeBackup(json);
       if (!ok) {
-        storageWarning.value = '本地存储不可用（隐私模式或存储已满）——进度无法自动保存，请尽快「导出存档 JSON」备份，你的游戏仍可继续。';
+        storageWarning.value = t('warn.storageUnavailable');
       }
       touchRecord(state.value.finished); // 完结时保存定型快照；进行中只更新摘要
     } catch {
-      storageWarning.value = '本地存储异常——进度无法自动保存，请尽快「导出存档 JSON」备份。';
+      storageWarning.value = t('warn.storageError');
     }
   }
 
